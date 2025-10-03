@@ -1,0 +1,118 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String?
+  email        String        @unique
+  password     String
+  role         Role          @default(USER)
+  balance      Float         @default(0.0)
+  orders       Order[]
+  transactions Transaction[]
+  emailLogs    EmailLog[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model ScratchCard {
+  id          String   @id @default(uuid())
+  type        CardType
+  pin         String   @unique
+  value       String
+  isImage     Boolean  @default(false)
+  price       Float
+  isUsed      Boolean  @default(false)
+  orderId     String?
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  cardType    CardType
+  quantity    Int
+  totalAmount Float
+  status      OrderStatus    @default(PENDING)
+  cards       ScratchCard[]
+  transactions Transaction[]
+  emailLogs   EmailLog[]
+  reference   String         @unique
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  orderId     String?
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount      Float
+  type        TransactionType
+  reference   String   @unique
+  status      TransactionStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum CardType {
+  WAEC
+  NECO
+  NABTEB
+  NBAIS
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum TransactionType {
+  DEPOSIT
+  PURCHASE
+  WITHDRAWAL
+}
+
+model EmailLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id])
+  recipient String
+  subject   String
+  status    EmailStatus @default(SENT)
+  error     String?
+  cardType  CardType?
+  createdAt DateTime @default(now())
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+  PENDING
+}
