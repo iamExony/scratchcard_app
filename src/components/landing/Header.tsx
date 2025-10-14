@@ -2,7 +2,7 @@ import { Mail, Phone, Twitter, Facebook, Instagram, MessageCircle, Linkedin } fr
 
 const Header = () => {
   return (
-    <header className="bg-muted border-b border-border">
+    <header className="hidden bg-muted border-b border-border md:block">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-2 text-sm">
           <div className="flex items-center gap-6">
