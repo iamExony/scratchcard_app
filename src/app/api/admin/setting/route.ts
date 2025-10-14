@@ -13,8 +13,8 @@ export async function GET() {
       general: {
         siteName: "ResultPins",
         siteDescription: "Your trusted scratch card provider",
-        adminEmail: "admin@resultpins.com",
-        supportEmail: "support@resultpins.com",
+        adminEmail: "admin@scratchcard.com",
+        supportEmail: "support@scratchcard.com",
         currency: "NGN",
         timezone: "Africa/Lagos",
       },
@@ -29,8 +29,8 @@ export async function GET() {
       email: {
         smtpHost: "smtp.gmail.com",
         smtpPort: 587,
-        smtpUser: "noreply@resultpins.com",
-        smtpFrom: "noreply@resultpins.com",
+        smtpUser: "noreply@scratchcard.com",
+        smtpFrom: "noreply@scratchcard.com",
         autoSendEmails: true,
         emailNotifications: true,
       },

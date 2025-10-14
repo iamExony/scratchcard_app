@@ -1,7 +1,7 @@
 // app/admin/analytics/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +31,10 @@ import {
   TrendingUp,
   Users,
   ShoppingCart,
-  CreditCard,
   DollarSign,
   Package,
   Download,
   Calendar,
-  BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -82,7 +80,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30d");
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/admin/analytics?range=${timeRange}`);
@@ -97,11 +95,11 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, [timeRange]);
+  }, [fetchAnalytics]);
 
   const exportAnalytics = async () => {
     try {
@@ -118,6 +116,7 @@ export default function AnalyticsPage() {
       
       toast.success("Analytics exported successfully");
     } catch (error) {
+      console.error("Error exporting analytics:", error);
       toast.error("Failed to export analytics");
     }
   };
@@ -354,7 +353,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {data.topProducts.map((product, index) => (
+                {data.topProducts.map((product) => (
                   <div key={product.cardType} className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
                       <p className="font-medium">{product.cardType}</p>

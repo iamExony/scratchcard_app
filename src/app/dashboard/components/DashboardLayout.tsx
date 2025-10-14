@@ -14,13 +14,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { fi } from "date-fns/locale";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const {data: session} = useSession()
+
+ const  MergeName = (text:string) =>{
+        try{
+        const sep =  text.split(" ");
+        const firstLetter =  sep[0]?.charAt(0) || "";
+        const secondLetter = sep[1]?.charAt(0) || "";
+        const capitalizeLetters = `${firstLetter}${secondLetter || firstLetter}`
+        return capitalizeLetters.toUpperCase();
+        }catch(error){
+          console.log(error)
+          return "UN"
+        }
+    }
+const username = session?.user?.name
+const abbName = MergeName(username || "User Name")
+
   return (
 
     <div className="min-h-screen flex w-full">
@@ -42,12 +60,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-primary text-primary-foreground">EO</AvatarFallback>
+                    <AvatarFallback className="bg-primary text-primary-foreground">{abbName}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Ekemini Okon</DropdownMenuLabel>
+                <DropdownMenuLabel>{session?.user?.name}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />

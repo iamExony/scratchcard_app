@@ -17,6 +17,7 @@ import {
 import { RecentOrders } from "./components/RecentOrders";
 import { StatsGrid } from "./components/StatsGrid";
 import { QuickActions } from "./components/QuickActions";
+import Link from "next/link";
 
 interface DashboardStats {
   totalUsers: number;
@@ -83,7 +84,7 @@ export default function AdminDashboard() {
           </Button>
           <Button>
             <Upload className="h-4 w-4 mr-2" />
-            Upload Cards
+            <Link href="/admin/cards/upload">Upload Cards</Link>
           </Button>
         </div>
       </div>

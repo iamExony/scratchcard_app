@@ -50,7 +50,7 @@ export function ProductPurchaseModal({
         <DialogHeader>
           <DialogTitle>Buy {productName}</DialogTitle>
           <DialogDescription>
-            Enter the number of {productType.toLowerCase()} you want to purchase. The total cost will be calculated based on the current price.
+            Enter the number of {productType.toUpperCase()} you want to purchase. The total cost will be calculated based on the current price.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">

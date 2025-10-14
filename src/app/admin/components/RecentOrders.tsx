@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -104,7 +103,7 @@ export function RecentOrders() {
   };
 
   const handleSendEmail = (orderId: string, userEmail: string) => {
-    toast.info(`Sending email for order ${orderId}`);
+    toast.info(`Sending email for order ${orderId} to ${userEmail}`);
     // Implement email sending functionality
   };
 

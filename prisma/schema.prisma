@@ -116,3 +116,48 @@ enum EmailStatus {
   FAILED
   PENDING
 }
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    ContactStatus @default(UNREAD)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_messages")
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  status    SubscriberStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("newsletter_subscribers")
+}
+
+model WebhookLog {
+  id        String   @id @default(uuid())
+  event     String
+  level     String   // INFO, WARN, ERROR
+  data      String   // JSON string of the log data
+  timestamp DateTime @default(now())
+  
+  @@map("webhook_logs")
+}
+
+enum ContactStatus {
+  UNREAD
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  INACTIVE
+  UNSUBSCRIBED
+}

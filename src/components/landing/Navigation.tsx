@@ -9,7 +9,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="text-2xl font-bold">
-              <span className="text-foreground">Resultpins</span>
+              <span className="text-foreground">Scratchcard</span>
               <span className="text-primary">.com</span>
             </Link>
           </div>

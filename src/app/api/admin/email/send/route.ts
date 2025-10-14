@@ -270,7 +270,7 @@ function generateEmailContent(order: any, cards: any[]) {
       
       <div class="footer">
         <p>This is an automated email. Please do not reply to this message.</p>
-        <p>If you have any questions, contact our support team at support@resultpins.com</p>
+        <p>If you have any questions, contact our support team at support@scratchcard.com</p>
         <p>&copy; ${new Date().getFullYear()} ResultPins. All rights reserved.</p>
       </div>
     </body>

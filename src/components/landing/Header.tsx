@@ -7,18 +7,18 @@ const Header = () => {
         <div className="flex items-center justify-between py-2 text-sm">
           <div className="flex items-center gap-6">
             <a 
-              href="mailto:support@resultpins.com" 
+              href="mailto:support@scratchcard.com" 
               className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <Mail className="h-4 w-4" />
-              support@resultpins.com
+              support@scratchcard.com
             </a>
             <a 
               href="tel:08075817546" 
               className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <Phone className="h-4 w-4" />
-              08075817546
+              07066802257
             </a>
           </div>
           

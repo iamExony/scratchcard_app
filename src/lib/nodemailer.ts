@@ -47,7 +47,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
     }
 
     const info = await transporter.sendMail({
-      from: `"${process.env.EMAIL_FROM_NAME || 'ResultPins'}" <${process.env.EMAIL_FROM || 'noreply@resultpins.com'}>`,
+      from: `"${process.env.EMAIL_FROM_NAME || 'ResultPins'}" <${process.env.EMAIL_FROM || 'noreply@scratchcard.com'}>`,
       to,
       subject,
       html,

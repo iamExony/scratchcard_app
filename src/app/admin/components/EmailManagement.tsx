@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -17,13 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Tabs,
   TabsContent,
@@ -100,6 +92,7 @@ export function EmailManagement() {
       setEmailLogs(data.emailLogs || []);
     } catch (error) {
       toast.error("Failed to fetch email logs");
+      throw error;
     }
   };
 
@@ -117,16 +110,18 @@ export function EmailManagement() {
       fetchTemplates();
     } catch (error) {
       toast.error("Failed to update template");
+      throw error;
     }
   };
 
   const sendTestEmail = async (templateId: string) => {
     try {
       // This would send a test email to the admin
-      toast.info("Sending test email...");
+      toast.info(`Sending test email...\n${templateId}`);
       // Implement test email logic
     } catch (error) {
       toast.error("Failed to send test email");
+      throw error;
     }
   };
 
@@ -312,7 +307,7 @@ export function EmailManagement() {
                       </div>
                       <div>
                         <Label>Sender Email</Label>
-                        <Input placeholder="noreply@resultpins.com" />
+                        <Input placeholder="noreply@scratchcard.com" />
                       </div>
                       <div>
                         <Label>Sender Name</Label>

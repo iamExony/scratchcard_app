@@ -31,12 +31,16 @@ const menuItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Scratch Cards", url: "/admin/cards", icon: CreditCard },
-  //{ title: "Upload Cards", url: "/admin/upload", icon: Upload },
+  { title: "Upload Cards", url: "/admin/cards/upload", icon: Upload },
   { title: "Orders", url: "/admin/orders", icon: ShoppingCart },
   { title: "Email Management", url: "/admin/email", icon: Mail },
   { title: "Transactions", url: "/admin/transactions", icon: History },
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
   { title: "Settings", url: "/admin/settings", icon: Settings },
+  {
+    title: "Contact Messages", url: "/admin/contacts", icon: Mail,},
+  {
+    title: "Newsletter", url: "/admin/newsletter", icon: Users,},
 ];
 
 export function AdminSidebar() {

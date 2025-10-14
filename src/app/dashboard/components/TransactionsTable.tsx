@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 import {
   Table,
   TableBody,
@@ -102,5 +102,131 @@ export function TransactionsTable() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+ */
+
+"use client";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+
+interface Transaction {
+  id: string;
+  type: "DEPOSIT" | "PURCHASE" | "WITHDRAWAL";
+  amount: number;
+  status: "PENDING" | "SUCCESS" | "FAILED";
+  reference: string;
+  createdAt: string;
+  order?: {
+    cardType: string;
+    quantity: number;
+    status: string;
+  } | null;
+}
+
+export function TransactionsTable() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchTransactions();
+    }
+  }, [session]);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch('/api/transactions');
+      if (response.ok) {
+        const data = await response.json();
+        setTransactions(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "SUCCESS":
+        return "text-green-600 bg-green-50";
+      case "PENDING":
+        return "text-yellow-600 bg-yellow-50";
+      case "FAILED":
+        return "text-red-600 bg-red-50";
+      default:
+        return "text-gray-600 bg-gray-50";
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "DEPOSIT":
+        return "text-blue-600 bg-blue-50";
+      case "PURCHASE":
+        return "text-purple-600 bg-purple-50";
+      case "WITHDRAWAL":
+        return "text-orange-600 bg-orange-50";
+      default:
+        return "text-gray-600 bg-gray-50";
+    }
+  };
+
+  if (loading) {
+    return <div className="animate-pulse">Loading transactions...</div>;
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
+      <div className="border rounded-lg overflow-hidden">
+        <div className="bg-muted/50 grid grid-cols-5 gap-4 p-4 text-sm font-medium">
+          <div>Type</div>
+          <div>Amount</div>
+          <div>Status</div>
+          <div>Reference</div>
+          <div>Date</div>
+        </div>
+        <div className="divide-y">
+          {transactions.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              No transactions found
+            </div>
+          ) : (
+            transactions.map((transaction) => (
+              <div key={transaction.id} className="grid grid-cols-5 gap-4 p-4 text-sm">
+                <div>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(transaction.type)}`}>
+                    {transaction.type}
+                  </span>
+                  {transaction.order && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {transaction.order.cardType} × {transaction.order.quantity}
+                    </p>
+                  )}
+                </div>
+                <div className="font-medium">
+                  ₦{transaction.amount.toLocaleString()}
+                </div>
+                <div>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                    {transaction.status}
+                  </span>
+                </div>
+                <div className="text-xs font-mono text-muted-foreground">
+                  {transaction.reference}
+                </div>
+                <div className="text-muted-foreground">
+                  {new Date(transaction.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

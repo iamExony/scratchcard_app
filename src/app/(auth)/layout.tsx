@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import "./globals.css";
 import Navigation from "@/components/landing/Navigation";
 import Footer from "@/components/landing/Footer";
@@ -20,12 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SessionProviderWrapper>
+      
           <Header />
           <Navigation />
           {children}
           <Footer />
-          </SessionProviderWrapper>
+         
       </body>
     </html>
   );

@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           <div>
             <h3 className="text-xl font-bold mb-4">
-              <span className="text-foreground">Resultpins</span>
+              <span className="text-foreground">Scratchcard</span>
               <span className="text-primary">.com</span>
             </h3>
             <p className="text-muted-foreground mb-4">
@@ -40,26 +40,26 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <a href="mailto:support@resultpins.com" className="hover:text-primary transition-colors">
-                  support@resultpins.com
+                <a href="mailto:support@scratchcard.com" className="hover:text-primary transition-colors">
+                  support@scratchcard.com
                 </a>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Phone className="h-4 w-4" />
                 <a href="tel:08075817546" className="hover:text-primary transition-colors">
-                  08075817546
+                  07066802257
                 </a>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>Lagos, Nigeria</span>
+                <span>Rivers, Nigeria</span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
-          <p>&copy; 2024 Resultpins.com. All rights reserved.</p>
+          <p>&copy; 2025 Scratchcard.com. All rights reserved.</p>
         </div>
       </div>
     </footer>

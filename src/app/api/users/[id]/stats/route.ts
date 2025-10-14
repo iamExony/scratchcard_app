@@ -5,10 +5,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    // Await the params first
+    const { id: userId } = await params;
 
     const [user, orders, transactions] = await Promise.all([
       prisma.user.findUnique({
@@ -17,7 +18,7 @@ export async function GET(
       }),
       prisma.order.findMany({
         where: { userId },
-        select: { totalAmount: true },
+        select: { totalAmount: true, status: true },
       }),
       prisma.transaction.findMany({
         where: { userId, type: "PURCHASE", status: "SUCCESS" },
@@ -34,10 +35,12 @@ export async function GET(
 
     const totalOrders = orders.length;
     const totalSpent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+    const completedOrders = orders.filter(order => order.status === 'COMPLETED').length;
 
     return NextResponse.json({
       balance: user.balance,
       totalOrders,
+      completedOrders,
       totalSpent,
     });
 

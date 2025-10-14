@@ -170,3 +170,33 @@
     @apply bg-background text-foreground;
   }
 }
+/* Smooth & Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(220 15% 95%);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(220 15% 70%);
+  border-radius: 9999px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(220 15% 50%);
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* Firefox support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(220 15% 70%) hsl(220 15% 95%);
+}

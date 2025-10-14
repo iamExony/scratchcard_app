@@ -5,20 +5,25 @@ import { ActionCard } from "./components/ActionCard";
 import { TransactionsTable } from "./components/TransactionsTable";
 import { ProductPurchaseModal } from "./components/ProductPurchaseModal";
 import { PaymentDetailsModal } from "./components/PaymentDetailsModal";
+import { DepositModal } from "./components/DepositModal"; // New component
 import { Wallet, Download, Upload, Send, Key, Ticket, CreditCard, Award } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import './theme.css'
+import { useRouter } from "next/navigation";
 
 interface UserStats {
   balance: number;
   totalOrders: number;
   totalSpent: number;
+  completedOrders: number;
 }
 
 const Index = () => {
+  const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [depositModalOpen, setDepositModalOpen] = useState(false); // New state
   const [selectedProduct, setSelectedProduct] = useState({
     name: "",
     type: "",
@@ -28,7 +33,8 @@ const Index = () => {
   const [userStats, setUserStats] = useState<UserStats>({
     balance: 0,
     totalOrders: 0,
-    totalSpent: 0
+    totalSpent: 0,
+    completedOrders: 0
   });
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
@@ -53,8 +59,33 @@ const Index = () => {
     }
   };
 
+  const handleDeposit = () => {
+    setDepositModalOpen(true);
+  };
+
+  const handleDepositSuccess = () => {
+    toast.success("Deposit initiated successfully!");
+    fetchUserStats(); // Refresh balance
+    setDepositModalOpen(false);
+  };
+
   const handleAction = (action: string) => {
-    toast.success(`${action} clicked`);
+    switch (action) {
+      case "Deposit":
+        handleDeposit();
+        break;
+      case "Withdraw":
+        toast.info("Withdrawal feature coming soon!");
+        break;
+      case "Transfer":
+        toast.info("Transfer feature coming soon!");
+        break;
+      case "View Statement":
+        router.push("/dashboard/transactions");
+        break;
+      default:
+        toast.success(`${action} clicked`);
+    }
   };
 
   const handleProductClick = (productName: string, productType: string, unitPrice: number) => {
@@ -65,6 +96,11 @@ const Index = () => {
   const handleProceedToPayment = (quantity: number) => {
     setPurchaseQuantity(quantity);
     setPaymentModalOpen(true);
+  };
+
+  const handlePurchaseSuccess = () => {
+    fetchUserStats(); // Refresh balance after purchase
+    setPaymentModalOpen(false);
   };
 
   return (
@@ -95,7 +131,7 @@ const Index = () => {
           background="bg-warning"
           actionLabel="Click here"
           subLabel="Fund your wallet instantly"
-          onAction={() => handleAction("Deposit")}
+          onAction={handleDeposit}
         />
 
         <StatsCard
@@ -175,6 +211,14 @@ const Index = () => {
         productType={selectedProduct.type}
         quantity={purchaseQuantity}
         unitPrice={selectedProduct.unitPrice}
+        userBalance={userStats.balance}
+        onPurchaseSuccess={handlePurchaseSuccess}
+      />
+
+      <DepositModal
+        open={depositModalOpen}
+        onOpenChange={setDepositModalOpen}
+        onDepositSuccess={handleDepositSuccess}
       />
     </div>
   );

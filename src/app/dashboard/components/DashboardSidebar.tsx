@@ -23,14 +23,17 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import '../theme.css'
+import { useSession } from "next-auth/react";
+
+
 
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "e-Statement", url: "/statement", icon: FileText },
-  { title: "Payment History", url: "/dashboard/payments", icon: History },
-  { title: "Purchase History", url: "/purchases", icon: ShoppingCart },
-  { title: "View Activity", url: "/activity", icon: Activity },
+  { title: "e-Statement", url: "/dashboard/transactions", icon: FileText },
+  //{ title: "Payment History", url: "/dashboard/payments", icon: History },
+  { title: "Purchase History", url: "/dashboard/purchases", icon: ShoppingCart },
+ // { title: "View Activity", url: "/activity", icon: Activity },
 ];
 
 const productItems = [
@@ -41,8 +44,10 @@ const productItems = [
 ];
 
 export function DashboardSidebar() {
+  
   const { open } = useSidebar();
-
+  const {data: session} = useSession();
+ 
   return (
     <Sidebar collapsible="icon" className="border-r">
       <SidebarContent>
@@ -53,7 +58,7 @@ export function DashboardSidebar() {
             </div>
             {open && (
               <span className="text-sidebar-foreground font-semibold text-lg">
-                Resultpins
+                Scratchcard
               </span>
             )}
           </div>
@@ -61,7 +66,7 @@ export function DashboardSidebar() {
           {open && (
             <div className="mt-6 p-3 bg-sidebar-accent rounded-lg">
               <p className="text-sm text-sidebar-foreground font-medium">Welcome!</p>
-              <p className="text-xs text-sidebar-foreground/70 mt-1">Ekemini Okon</p>
+              <p className="text-xs text-sidebar-foreground/70 mt-1">{`${session?.user.name}`}</p>
             </div>
           )}
         </div>

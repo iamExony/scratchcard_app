@@ -1,7 +1,7 @@
 // components/admin/UserDetailsModal.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, Calendar, Package, History, Wallet, User, CreditCard } from "lucide-react";
+import { Mail, Calendar, Package, User, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserDetails {
@@ -61,27 +61,28 @@ export function UserDetailsModal({
   const [user, setUser] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (open && userId) {
-      fetchUserDetails();
-    }
-  }, [open, userId]);
-
-  const fetchUserDetails = async () => {
+  const fetchUserDetails = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/admin/users/${userId}`);
       const data = await response.json();
-      
+
       if (!response.ok) throw new Error(data.error);
-      
+
       setUser(data.user);
     } catch (error) {
       toast.error("Failed to load user details");
+      throw error;
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    if (open && userId) {
+      fetchUserDetails();
+    }
+  }, [open, userId, fetchUserDetails]);
 
   const handleRoleChange = async (newRole: "ADMIN" | "USER") => {
     if (!user) return;
@@ -99,6 +100,7 @@ export function UserDetailsModal({
       toast.success(`User role updated to ${newRole}`);
     } catch (error) {
       toast.error("Failed to update user role");
+      throw error;
     }
   };
 
@@ -233,9 +235,8 @@ export function UserDetailsModal({
                                 ₦{Math.abs(transaction.amount).toLocaleString()} • {transaction.status}
                               </p>
                             </div>
-                            <div className={`font-medium ${
-                              transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
+                            <div className={`font-medium ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
                               {transaction.amount > 0 ? '+' : ''}₦{transaction.amount.toLocaleString()}
                             </div>
                           </div>

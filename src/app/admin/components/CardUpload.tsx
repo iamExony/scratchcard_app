@@ -129,10 +129,10 @@ const handleTextUpload = async () => {
       formData.append('isImageCard', 'true');
       formData.append('uploadMethod', 'file');
 
-      uploadedFiles.forEach((file, index) => {
+/*       uploadedFiles.forEach((file, index) => {
         // We'd need to get the actual File object here
         // For now, this is a placeholder
-      });
+      }); */
 
       const response = await fetch('/api/admin/cards/upload', {
         method: 'POST',
@@ -224,6 +224,7 @@ const handleTextUpload = async () => {
                 onClick={() => setUploadMethod('file')}
                 className="flex-1"
               >
+                {/* eslint-disable-next-line jsx-a11y/alt-text*/}
                 <Image className="h-4 w-4 mr-2" />
                 Image Files
               </Button>
@@ -289,6 +290,7 @@ WAEC-3456-7890-1234"
                         className="flex items-center justify-between p-3 border rounded-lg"
                       >
                         <div className="flex items-center gap-3">
+                          {/* eslint-disable-next-line jsx-a11y/alt-text */}
                           <Image className="h-8 w-8 text-muted-foreground" />
                           <div>
                             <p className="font-medium">{file.name}</p>
