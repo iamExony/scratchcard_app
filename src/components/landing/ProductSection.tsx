@@ -1,38 +1,8 @@
 import ProductCard from "./ProductCard";
+import { products } from "./products";
 
 const ProductsSection = () => {
-  const products = [
-    {
-      title: "WAEC Result Checker",
-      price: "₦4,000",
-      description: "Get instant access to your WAEC examination results with our reliable checking service.",
-      image: "/cards/waec_result.jpeg",
-    },
-    {
-      title: "NECO Result Token",
-      price: "₦2,000",
-      description: "Access your NECO results quickly and securely with our verification token system.",
-      image: "/cards/neco_result.jpeg",
-    },
-    {
-      title: "NABTEB Result Checker",
-      price: "₦970",
-      description: "Check your NABTEB examination results instantly with our verification service.",
-      image: "/cards/nabteb1.jpg",
-    },
-    {
-      title: "NBAIS Result Checker",
-      price: "₦1,666",
-      description: "Verify your NBAIS examination results with our secure checking platform.",
-      image: "/cards/nbais_result.jpeg",
-    },
-    {
-      title: "WAEC Verification Pin",
-      price: "₦3,735",
-      description: "Official WAEC verification pins for certificate authentication and verification.",
-      image: "/cards/waec_verification_pin.jpeg",
-    },
-  ];
+
 
   return (
     <section className="py-16 bg-muted/30">
@@ -47,8 +17,8 @@ const ProductsSection = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product, index) => (
-            <ProductCard key={index} {...product} />
+          {products.map((product) => (
+            <ProductCard key={product.id} {...product} />
           ))}
         </div>
       </div>

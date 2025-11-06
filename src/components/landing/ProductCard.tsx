@@ -2,16 +2,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-
+import Link from "next/link";
 interface ProductCardProps {
   title: string;
   price: string;
   description: string;
   image: string;
   inStock?: boolean;
+  id: string;
 }
 
-const ProductCard = ({ title, price, description, image, inStock = true }: ProductCardProps) => {
+const ProductCard = ({ title, price, description, image, inStock = true, id }: ProductCardProps) => {
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border border-border">
       <CardContent className="p-6">
@@ -39,7 +40,7 @@ const ProductCard = ({ title, price, description, image, inStock = true }: Produ
           <div className="flex items-center justify-between pt-2">
             <span className="text-2xl font-bold text-primary">{price}</span>
             <Button size="sm" className="bg-primary hover:bg-primary-hover">
-              Buy Now
+              <Link href={`${id}`}>Buy Now</Link>
             </Button>
           </div>
         </div>
