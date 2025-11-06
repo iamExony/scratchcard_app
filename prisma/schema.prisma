@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,7 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -16,55 +13,118 @@ model User {
   email        String        @unique
   password     String
   role         Role          @default(USER)
-  balance      Float         @default(0.0)
-  orders       Order[]
-  transactions Transaction[]
-  emailLogs    EmailLog[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  balance      Float         @default(0.0)
+  emailLogs    EmailLog[]
+  orders       Order[]
+  transactions Transaction[]
 }
 
 model ScratchCard {
-  id          String   @id @default(uuid())
-  type        CardType
-  pin         String   @unique
-  value       String
-  isImage     Boolean  @default(false)
-  price       Float
-  isUsed      Boolean  @default(false)
-  orderId     String?
-  order       Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  type      CardType
+  pin       String   @unique
+  value     String
+  isImage   Boolean  @default(false)
+  price     Float
+  isUsed    Boolean  @default(false)
+  orderId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order?   @relation(fields: [orderId], references: [id])
 }
 
 model Order {
-  id          String         @id @default(uuid())
-  userId      String
-  user        User           @relation(fields: [userId], references: [id])
-  cardType    CardType
-  quantity    Int
-  totalAmount Float
-  status      OrderStatus    @default(PENDING)
-  cards       ScratchCard[]
+  id           String        @id @default(uuid())
+  userId       String
+  cardType     CardType
+  quantity     Int
+  totalAmount  Float
+  status       OrderStatus   @default(PENDING)
+  reference    String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  emailLogs    EmailLog[]
+  user         User          @relation(fields: [userId], references: [id])
+  cards        ScratchCard[]
   transactions Transaction[]
-  emailLogs   EmailLog[]
-  reference   String         @unique
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
 }
 
 model Transaction {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  orderId     String?
-  order       Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  amount      Float
-  type        TransactionType
-  reference   String   @unique
-  status      TransactionStatus @default(PENDING)
-  createdAt   DateTime @default(now())
+  id        String            @id @default(uuid())
+  userId    String
+  orderId   String?
+  amount    Float
+  type      TransactionType
+  reference String            @unique
+  status    TransactionStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  order     Order?            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id])
+}
+
+model EmailLog {
+  id        String      @id @default(uuid())
+  userId    String
+  orderId   String?
+  recipient String
+  subject   String
+  status    EmailStatus @default(SENT)
+  error     String?
+  cardType  CardType?
+  createdAt DateTime    @default(now())
+  order     Order?      @relation(fields: [orderId], references: [id])
+  user      User        @relation(fields: [userId], references: [id])
+}
+
+model ContactMessage {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    ContactStatus @default(UNREAD)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("contact_messages")
+}
+
+model NewsletterSubscriber {
+  id        String           @id @default(uuid())
+  email     String           @unique
+  status    SubscriberStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("newsletter_subscribers")
+}
+
+model WebhookLog {
+  id        String   @id @default(uuid())
+  event     String
+  level     String
+  data      String
+  timestamp DateTime @default(now())
+
+  @@map("webhook_logs")
+}
+
+model GuestTransaction {
+  id           String   @id
+  reference    String   @unique
+  firstname    String
+  lastname     String
+  email        String
+  phone        String
+  product      String
+  quantity     Int
+  total        Float
+  purpose      String
+  status       String   @default("PENDING")
+  paystackData Json?
+  createdAt    DateTime @default(now())
 }
 
 enum Role {
@@ -98,56 +158,10 @@ enum TransactionType {
   WITHDRAWAL
 }
 
-model EmailLog {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  orderId   String?
-  order     Order?   @relation(fields: [orderId], references: [id])
-  recipient String
-  subject   String
-  status    EmailStatus @default(SENT)
-  error     String?
-  cardType  CardType?
-  createdAt DateTime @default(now())
-}
-
 enum EmailStatus {
   SENT
   FAILED
   PENDING
-}
-model ContactMessage {
-  id        String   @id @default(uuid())
-  name      String
-  email     String
-  subject   String
-  message   String
-  status    ContactStatus @default(UNREAD)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("contact_messages")
-}
-
-model NewsletterSubscriber {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  status    SubscriberStatus @default(ACTIVE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("newsletter_subscribers")
-}
-
-model WebhookLog {
-  id        String   @id @default(uuid())
-  event     String
-  level     String   // INFO, WARN, ERROR
-  data      String   // JSON string of the log data
-  timestamp DateTime @default(now())
-  
-  @@map("webhook_logs")
 }
 
 enum ContactStatus {

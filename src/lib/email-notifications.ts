@@ -19,6 +19,14 @@ export async function sendEmailNotification(emailData: EmailData): Promise<{ suc
   try {
     const { to, userName, subject, template, data } = emailData;
 
+    // Log the email request
+    console.log('📧 Sending email notification:', {
+      template,
+      to,
+      subject,
+      hasData: !!data
+    });
+
     let emailResult;
 
     switch (template) {
@@ -27,6 +35,13 @@ export async function sendEmailNotification(emailData: EmailData): Promise<{ suc
         break;
       
       case 'purchaseSuccess':
+        console.log('💳 Processing purchase success email:', {
+          orderRef: data.orderReference,
+          cardType: data.cardType,
+          quantity: data.quantity,
+          hasCards: Array.isArray(data.scratchCards)
+        });
+
         emailResult = await sendScratchCardsEmail({
           to,
           userName,
@@ -34,7 +49,7 @@ export async function sendEmailNotification(emailData: EmailData): Promise<{ suc
           cardType: data.cardType,
           quantity: data.quantity,
           totalAmount: data.totalAmount,
-          scratchCards: data.scratchCards,
+          scratchCards: data.scratchCards
         });
         break;
       
@@ -47,6 +62,7 @@ export async function sendEmailNotification(emailData: EmailData): Promise<{ suc
         break;
       
       default:
+        console.error('❌ Unknown email template:', template);
         return { success: false, error: 'Unknown email template' };
     }
 

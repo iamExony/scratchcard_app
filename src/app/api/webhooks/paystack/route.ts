@@ -1,8 +1,21 @@
 /* import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import crypto from "crypto";
-import { getPaymentIntent, deletePaymentIntent, redis } from "@/lib/redis";
-import { sendScratchCardsEmail } from '@/lib/scratch-card-email';
+import { getPaymentIntent, deletePaymentIntent } from "@/lib/redis";
+import { sendEmailNotification } from '@/lib/email-notifications';
+
+type TransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
+>;
+
+interface PaymentIntent {
+  userId: string;
+  email: string;
+  name: string;
+  productType: string;
+  quantity: number;
+}
 
 const prisma = new PrismaClient();
 
@@ -123,7 +136,7 @@ async function handlePurchasePayment(reference: string, amount: number, metadata
 
     // Get the stored payment intent from Redis
     console.log("🔍 Looking up payment intent in Redis for reference:", reference);
-    const intent = await getPaymentIntent(reference);
+    const intent = await getPaymentIntent(reference) as PaymentIntent | null;
 
     if (!intent) {
       console.error("❌ No stored payment intent found in Redis for reference:", reference);
@@ -132,13 +145,44 @@ async function handlePurchasePayment(reference: string, amount: number, metadata
 
     console.log("✅ Retrieved payment intent from Redis:", intent);
 
-    let orderResult: any;
+    // Clean up payment intent from Redis regardless of outcome
+    await deletePaymentIntent(reference).catch(error => {
+      console.warn("Failed to delete payment intent from Redis:", error);
+    });
 
-    await prisma.$transaction(async (tx) => {
+    // Create order and transaction in a single transaction
+    const result = await prisma.$transaction(async (tx: TransactionClient) => {
+      // Check available cards first
+      const availableCards = await tx.scratchCard.findMany({
+        where: {
+          cardType: metadata.productType,
+          status: "AVAILABLE",
+        },
+        take: metadata.quantity,
+        select: {
+          id: true,
+          pin: true,
+          serialNumber: true,
+        },
+      });
+
+      // Create the order first
+      const order = await tx.order.create({
+        data: {
+          userId: intent.userId || undefined,
+          guestEmail: intent.email,
+          cardType: metadata.productType,
+          quantity: metadata.quantity,
+          totalAmount: amount,
+          status: availableCards.length === metadata.quantity ? "completed" : "pending",
+          reference,
+        },
+      });
+
       // Create transaction record
       const transaction = await tx.transaction.create({
         data: {
-          userId: intent.userId,
+          userId: intent.userId || 'guest',
           amount: amount,
           type: "PURCHASE",
           reference,
@@ -146,7 +190,53 @@ async function handlePurchasePayment(reference: string, amount: number, metadata
         },
       });
 
-      console.log("✅ Purchase transaction created:", transaction.id);
+      let updatedCards: typeof availableCards = [];
+
+      if (availableCards.length === metadata.quantity) {
+        // Update card statuses and link to order
+        updatedCards = await Promise.all(
+          availableCards.map(card => 
+            tx.scratchCard.update({
+              where: { id: card.id },
+              data: {
+                status: "SOLD",
+                orderId: order.id,
+              },
+              select: {
+                id: true,
+                pin: true,
+                serialNumber: true,
+              },
+            })
+          )
+        );
+      }
+
+      // Send appropriate email notification
+      await sendEmailNotification({
+        to: intent.email,
+        userName: intent.name,
+        subject: availableCards.length === metadata.quantity 
+          ? "Your ScratchCard Order Details"
+          : "Order Confirmation - Awaiting Card Allocation",
+        template: "purchaseSuccess",
+        data: {
+          orderReference: reference,
+          cardType: metadata.productType,
+          quantity: metadata.quantity,
+          totalAmount: amount,
+          scratchCards: updatedCards.length > 0 ? updatedCards : null
+        }
+      });
+
+      return {
+        orderId: order.id,
+        transactionId: transaction.id,
+        cardsAllocated: updatedCards.length === metadata.quantity,
+      };
+    });
+
+    console.log("✅ Purchase completed:", result);
 
       // Create order
       const orderReference = generateReference();
