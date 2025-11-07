@@ -22,17 +22,21 @@ model User {
 }
 
 model ScratchCard {
-  id        String   @id @default(uuid())
-  type      CardType
-  pin       String   @unique
-  value     String
-  isImage   Boolean  @default(false)
-  price     Float
-  isUsed    Boolean  @default(false)
-  orderId   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  order     Order?   @relation(fields: [orderId], references: [id])
+  id               String   @id @default(uuid())
+  type             CardType
+  pin              String   @unique
+  serialNumber     String   @unique
+  value            String
+  isImage          Boolean  @default(false)
+  price            Float
+  isUsed           Boolean  @default(false)
+  orderId          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  order            Order?   @relation(fields: [orderId], references: [id])
+  status           CardStatus @default(AVAILABLE)
+  purchasedBy     String? //user ID
+  purchasedAt     DateTime?
 }
 
 model Order {
@@ -175,4 +179,9 @@ enum SubscriberStatus {
   ACTIVE
   INACTIVE
   UNSUBSCRIBED
+}
+
+enum CardStatus {
+  AVAILABLE
+  SOLD
 }

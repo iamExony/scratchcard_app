@@ -6,7 +6,7 @@ export async function checkCardAvailability(cardType: string, quantity: number) 
   const availableCount = await prisma.scratchCard.count({
     where: {
       type: cardType,
-      isUsed: false,
+      status: "AVAILABLE",
       orderId: null,
     },
   });

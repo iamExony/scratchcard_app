@@ -6,6 +6,7 @@ import { products } from "@/components/landing/products";
 import React, { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import ConfirmationPage from "../confirmation/page";
+import { generateReference } from "@/lib/utils";
 
 
 interface DetailPageProp {
@@ -49,7 +50,7 @@ export default function DetailPage({ params }: DetailPageProp) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const referenceId = `REF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        const referenceId = generateReference()
         const purpose = `${handleTitleSelect(cards?.title)} Scratch Card Purchase`;
 
         setUserData({

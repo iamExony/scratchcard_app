@@ -16,7 +16,7 @@ interface ConfirmationPageProps {
     purpose?: string
 }
 
-export default function ConfirmationPage({data} : {data?: ConfirmationPageProps}) {
+export default function ConfirmationPage({ data }: { data?: ConfirmationPageProps }) {
     const [processing, setProcessing] = useState(false);
 
     if (!data) {
@@ -37,9 +37,9 @@ export default function ConfirmationPage({data} : {data?: ConfirmationPageProps}
         try {
             const cleanProductType = data.product ? data.product.toUpperCase().split(" ")[0] : "WAEC";
             const response = await fetch(`/api/cards/check-availability?type=${encodeURIComponent(cleanProductType)}&quantity=${data.quantity}`);
-             console.log("🔗 Checking availability:",response);
-            const result = await response.json(); 
-            
+
+            const result = await response.json();
+
             if (!response.ok) {
                 throw new Error(result.error || 'Failed to check availability');
             }
@@ -57,11 +57,35 @@ export default function ConfirmationPage({data} : {data?: ConfirmationPageProps}
 
             // Check availability first
             const isAvailable = await checkAvailability();
-            
+
             if (!isAvailable) {
                 toast.error("This card is not available at the moment. Please check back later.");
                 setProcessing(false);
                 return;
+            }
+
+            // Store payment intent
+            const storeResponse = await fetch('/api/payments/store-intent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    reference: data.referenceId,
+                    userId: 'guest',
+                    productType: data.product,
+                    quantity: data.quantity,
+                    unitPrice: data.total! / (data.quantity || 1),
+                    totalAmount: data.total,
+                    email: data.email,
+                    userName: `${data.firstname} ${data.lastname}` || 'Customer',
+                }),
+            });
+
+            const storeResult = await storeResponse.json();
+
+            if (!storeResponse.ok) {
+                throw new Error("Failed to store payment intent: " + storeResult.error);
             }
 
             // Initialize payment directly with Paystack
@@ -102,6 +126,7 @@ export default function ConfirmationPage({data} : {data?: ConfirmationPageProps}
 
             // Redirect to Paystack
             window.location.href = paymentData.data.authorization_url;
+
         } catch (error) {
             console.error("Payment error:", error);
             toast.error("Payment failed. Please try again.");
@@ -143,7 +168,7 @@ export default function ConfirmationPage({data} : {data?: ConfirmationPageProps}
             </div>
 
             <div className="flex gap-4 justify-center mt-6">
-                <button 
+                <button
                     onClick={handlePayment}
                     disabled={processing}
                     className={`bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}

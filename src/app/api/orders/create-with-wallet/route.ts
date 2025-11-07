@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { generateReference } from "@/lib/utils";
+import { sendScratchCardsEmail } from "@/lib/scratch-card-email";
 
 const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, cardType, quantity, totalAmount } = await request.json();
+    const { userId, userEmail, cardType, quantity, totalAmount, reference } = await request.json();
 
     if (!userId || !cardType || !quantity || !totalAmount) {
       return NextResponse.json(
@@ -79,25 +80,43 @@ export async function POST(request: NextRequest) {
       });
 
       // Generate scratch cards
-      const scratchCards = [];
-      for (let i = 0; i < quantity; i++) {
-        const card = await tx.scratchCard.create({
-          data: {
-            type: cardType,
-            pin: `PIN_${orderReference}_${i}`.toUpperCase(),
-            value: cardType,
-            price: totalAmount / quantity,
-            orderId: order.id,
-          },
-        });
-        scratchCards.push(card);
-      }
+      const scratchCards = await tx.scratchCard.findMany({
+        where: { status: "AVAILABLE" },
+        take: quantity,
+        select: { id: true, pin: true, serialNumber: true }
+      })
+      console.log("here are my scratch card details: ", scratchCards)
 
+      await tx.scratchCard.updateMany({
+        where: { id: { in: scratchCards.map(card => card.id) } },
+        data: {
+          status: "SOLD",
+          purchasedBy: userId,
+          purchasedAt: new Date(),
+          orderId: order.id
+        }
+      })
+
+      
       // Update order status to completed
       const updatedOrder = await tx.order.update({
         where: { id: order.id },
         data: { status: "COMPLETED" },
         include: { cards: true },
+      });
+
+      // Send email with cards
+      await sendScratchCardsEmail({
+        to: userEmail, // confirm this value exists
+        userName: userEmail || "Customer",
+        orderReference: reference,
+        cardType: cardType,
+        quantity: parseInt(quantity),
+        totalAmount: parseFloat(totalAmount),
+        scratchCards: scratchCards.map(c => ({
+          pin: c.pin,
+          serialNumber: c.serialNumber,
+        }))
       });
 
       return { order: updatedOrder, cards: scratchCards, transaction };

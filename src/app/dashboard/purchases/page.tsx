@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Download, Eye, Copy, Calendar, CreditCard, Hash } from "lucide-react";
+import { Download, Eye, Copy, Calendar, CreditCard, Hash, RefreshCw } from "lucide-react";
 
 interface Order {
   id: string;
@@ -22,8 +22,10 @@ interface Order {
 interface ScratchCard {
   id: string;
   pin: string;
+  serialNumber: string;
   value: string;
   isUsed: boolean;
+  status: string;
   createdAt: string;
 }
 
@@ -34,22 +36,16 @@ export default function PurchasesPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    if (session?.user?.id) {
-      fetchOrders();
-    }
+    if (session?.user?.id) fetchOrders();
   }, [session]);
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`/api/users/${session?.user?.id}/orders`);
-      if (response.ok) {
-        const data = await response.json();
-        setOrders(data.orders || []);
-      } else {
-        toast.error("Failed to load orders");
-      }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
+      const res = await fetch(`/api/users/${session?.user?.id}/orders`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setOrders(data.orders || []);
+    } catch {
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
@@ -58,173 +54,187 @@ export default function PurchasesPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
+    toast.success("Copied!");
   };
 
   const downloadPins = (order: Order) => {
-    const pins = order.cards.map(card => `PIN: ${card.pin}`).join('\n');
-    const blob = new Blob([pins], { type: 'text/plain' });
+    const pins = order.cards.map((c, i) => `PIN ${i + 1}: ${c.pin}`).join("\n");
+    const serials = order.cards.map((c, i) => `SERIAL ${i + 1}: ${c.serialNumber}`).join("\n");
+    const blob = new Blob([pins + "\n\n" + serials], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `pins-${order.reference}.txt`;
-    document.body.appendChild(a);
+    a.download = `SCRATCH_${order.reference}.txt`;
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("Pins downloaded!");
+    toast.success("File downloaded!");
   };
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return 'success';
-      case 'PROCESSING': return 'warning';
-      case 'PENDING': return 'secondary';
-      case 'FAILED': return 'destructive';
-      default: return 'secondary';
-    }
-  };
+  const statusVariant = (s: string) =>
+    s === "COMPLETED" ? "success" : s === "PROCESSING" ? "warning" : s === "FAILED" ? "destructive" : "secondary";
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Purchase History</h1>
-            <p className="text-muted-foreground">Your scratch card orders and pins</p>
-          </div>
-        </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
+      <div className="h-[60vh] flex flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading purchases...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-5xl mx-auto px-2">
+
+      {/* HEADER */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Purchase History</h1>
-          <p className="text-muted-foreground">Your scratch card orders and pins</p>
+          <h1 className="text-3xl font-bold tracking-tight">Your Purchases</h1>
+          <p className="text-muted-foreground text-sm">Access your scratch cards & pins</p>
         </div>
-        <Button onClick={fetchOrders} variant="outline">
-          Refresh
+        <Button variant="outline" size="sm" onClick={fetchOrders}>
+          <RefreshCw className="h-4 w-4 mr-2" /> Refresh
         </Button>
       </div>
 
-      {orders.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <CreditCard className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No orders yet</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              You haven't made any purchases yet. Start by buying scratch cards from the dashboard.
+      {/* EMPTY STATE */}
+      {orders.length === 0 && (
+        <Card className="py-10 border-dashed">
+          <CardContent className="flex flex-col items-center">
+            <CreditCard className="h-14 w-14 text-muted-foreground/60 mb-4" />
+            <h3 className="text-lg font-semibold">No Purchases Yet</h3>
+            <p className="text-sm text-muted-foreground text-center max-w-sm my-2">
+              You haven’t bought any scratch cards yet. Start by making a purchase.
             </p>
-            <Button onClick={() => window.location.href = '/dashboard'}>
-              Go to Dashboard
+            <Button onClick={() => (window.location.href = "/dashboard")} className="mt-2">
+              Buy Scratch Cards
             </Button>
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <Card key={order.id} className="overflow-hidden">
-              <CardHeader className="bg-muted/50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Hash className="h-5 w-5" />
-                      Order: {order.reference}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-4 mt-2">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(order.createdAt)}
-                      </span>
-                      <Badge variant={getStatusVariant(order.status) as any}>
-                        {order.status}
-                      </Badge>
-                    </CardDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold">₦{order.totalAmount.toLocaleString()}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {order.quantity} {order.cardType} card{order.quantity > 1 ? 's' : ''}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold">Scratch Cards ({order.cards.length})</h4>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      {selectedOrder?.id === order.id ? 'Hide' : 'View'} Pins
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => downloadPins(order)}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                  </div>
+      )}
+
+      {/* ORDERS */}
+      {orders.map(order => (
+        <div
+          key={order.id}>
+          <Card className="group shadow-sm hover:shadow-md transition-all">
+            <CardHeader className="bg-muted/40 rounded-t-xl">
+              <div className="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Hash className="h-4 w-4" /> {order.reference}
+                  </CardTitle>
+                  <CardDescription className="flex flex-wrap items-center gap-3 mt-1">
+                    <span className="flex items-center gap-1 text-xs">
+                      <Calendar className="h-3.5 w-3.5" /> {formatDate(order.createdAt)}
+                    </span>
+                    <Badge variant={statusVariant(order.status) as any}>{order.status}</Badge>
+                  </CardDescription>
                 </div>
 
+                <div className="text-right">
+                  <p className="text-xl font-bold">₦{order.totalAmount.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {order.quantity} {order.cardType} card{order.quantity > 1 ? "s" : ""}
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-4">
+
+              {/* ACTIONS */}
+              <div className="flex flex-wrap gap-2 justify-between items-center">
+                <p className="text-sm font-medium">Scratch Cards ({order.cards.length})</p>
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    {selectedOrder?.id === order.id ? "Hide" : "View"} Pins
+                  </Button>
+
+                  <Button size="sm" onClick={() => downloadPins(order)}>
+                    <Download className="h-4 w-4 mr-2" /> Download
+                  </Button>
+                </div>
+              </div>
+
+              {/* PIN LIST WITH ANIMATION */}
+             
                 {selectedOrder?.id === order.id && (
-                  <div className="space-y-3">
-                    {order.cards.map((card, index) => (
-                      <div
-                        key={card.id}
-                        className="flex items-center justify-between p-3 border rounded-lg bg-muted/20"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-sm font-medium">{index + 1}</span>
+                  <div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-4 overflow-hidden"
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+
+                      {order.cards.map((card, i) => (
+                        <div
+                          key={card.id}
+                          whileHover={{ scale: 1.02 }}
+                          className="bg-muted/10 border rounded-xl p-3 flex flex-col gap-2"
+                        >
+                          {/* HEADER */}
+                          <div className="flex justify-between items-start">
+                            <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded">
+                              #{i + 1}
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                card.isUsed ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+                              }`}
+                            >
+                              {card.isUsed ? "Used" : "Unused"}
+                            </span>
                           </div>
+
+                          {/* PIN */}
                           <div>
-                            <div className="font-mono text-lg tracking-wider">
+                            <p className="text-[11px] font-medium text-muted-foreground uppercase">PIN Code</p>
+                            <div className="font-mono text-sm bg-background p-2 rounded border tracking-wider">
                               {card.pin}
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              {order.cardType} • {card.isUsed ? 'Used' : 'Unused'}
+                          </div>
+
+                          {/* SERIAL */}
+                          <div>
+                            <p className="text-[11px] font-medium text-muted-foreground uppercase">Serial Number</p>
+                            <div className="font-mono text-sm bg-background p-2 rounded border tracking-wider">
+                              {card.serialNumber}
                             </div>
                           </div>
+
+                          {/* COPY BUTTONS */}
+                          <div className="flex justify-between">
+                            <Button size="icon" variant="ghost" onClick={() => copyToClipboard(card.pin)}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => copyToClipboard(card.serialNumber)}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(card.pin)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      ))}
+
+                    </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          ))}
+              
+
+            </CardContent>
+          </Card>
         </div>
-      )}
+      ))}
+
     </div>
   );
 }

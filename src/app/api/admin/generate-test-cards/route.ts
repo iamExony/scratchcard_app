@@ -8,8 +8,16 @@ const prisma = new PrismaClient();
 function generatePin() {
   // Generate a 6-byte random number for the PIN
   const nums = crypto.randomBytes(6).readUIntBE(0, 6) % 100000000;
+  
   // Convert to string and pad with zeros to ensure 8 digits
   return nums.toString().padStart(8, '0');
+}
+function generateSerialNumber() {
+  // Generate a 6-byte random number for the PIN
+  const nums = crypto.randomBytes(5).readUIntBE(0, 5) % 100000000;
+
+  // Convert to string and pad with zeros to ensure 8 digits
+  return nums.toString().padStart(10, '0');
 }
 
 export async function GET(request: NextRequest) {
@@ -23,6 +31,7 @@ export async function GET(request: NextRequest) {
     const cardsData = Array(count).fill(null).map(() => ({
       type: type as any, // Cast to any to handle enum type
       pin: generatePin(),
+      serialNumber: generateSerialNumber(),
       value: "1000",
       isImage: false,
       price: 1000.00,

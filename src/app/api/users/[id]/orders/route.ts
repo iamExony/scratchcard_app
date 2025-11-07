@@ -55,8 +55,9 @@ export async function GET(
         cards: order.cards.map(card => ({
           id: card.id,
           pin: card.pin,
+          serialNumber: card.serialNumber,
           value: card.value,
-          isUsed: card.isUsed,
+          status: card.isUsed,
           createdAt: card.createdAt
         }))
       }))

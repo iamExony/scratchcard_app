@@ -119,7 +119,76 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        return { transaction };
+        // Create order record
+        // Create order
+        const order = await tx.order.create({
+          data: {
+            userId,
+            cardType,
+            quantity,
+            totalAmount,
+            reference: orderReference,
+            status: "PROCESSING",
+          },
+        });
+
+        // Link transaction to order
+        await tx.transaction.update({
+          where: { id: transaction.id },
+          data: { orderId: order.id },
+        });
+
+        // Deduct from user balance
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            balance: {
+              decrement: totalAmount
+            }
+          }
+        });
+
+        // Generate scratch cards
+        const scratchCards = await tx.scratchCard.findMany({
+          where: { status: "AVAILABLE" },
+          take: quantity,
+          select: { id: true, pin: true, serialNumber: true }
+        })
+
+        await tx.scratchCard.updateMany({
+          where: { id: { in: scratchCards.map(card => card.id) } },
+          data: {
+            status: "SOLD",
+            purchasedBy: userId,
+            purchasedAt: new Date(),
+            orderId: order.id
+          }
+        })
+
+
+        // Update order status to completed
+        const updatedOrder = await tx.order.update({
+          where: { id: order.id },
+          data: { status: "COMPLETED" },
+          include: { cards: true },
+        });
+
+        // Send email with cards
+        await sendScratchCardsEmail({
+          to: userEmail, // confirm this value exists
+          userName: userEmail || "Customer",
+          orderReference: reference,
+          cardType: cardType,
+          quantity: parseInt(quantity),
+          totalAmount: parseFloat(totalAmount),
+          scratchCards: scratchCards.map(c => ({
+            pin: c.pin,
+            serialNumber: c.serialNumber,
+          }))
+        });
+
+        return { order: updatedOrder, cards: scratchCards, transaction };
+
       });
 
       return NextResponse.json({
@@ -156,7 +225,7 @@ async function handleDepositSuccess(transaction: any, paymentData: any) {
     // Update transaction status
     await tx.transaction.update({
       where: { id: transaction.id },
-      data: { 
+      data: {
         status: "SUCCESS",
         amount: paymentData.amount / 100
       },

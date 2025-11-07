@@ -92,9 +92,11 @@ export function PaymentDetailsModal({
         },
         body: JSON.stringify({
           userId: session.user.id,
+          userEmail: session.user.email,
           cardType: productType,
           quantity,
           totalAmount: total,
+          reference: generateReference(),
         }),
       });
 

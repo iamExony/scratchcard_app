@@ -103,6 +103,14 @@ const Index = () => {
     setPaymentModalOpen(false);
   };
 
+  if (loading) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6 animate-fade-in">
       <div>

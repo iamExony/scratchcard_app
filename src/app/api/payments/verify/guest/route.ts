@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { verifyPayment } from "@/lib/paystack";
 import { getPaymentIntent, deletePaymentIntent } from "@/lib/redis";
-import { generateScratchCards } from "@/lib/card-availability";
+//import { generateScratchCards } from "@/lib/card-availability";
 import { sendScratchCardsEmail } from "@/lib/scratch-card-email";
 
 const prisma = new PrismaClient();
@@ -36,36 +36,50 @@ export async function POST(request: NextRequest) {
         }
 
         // Create guest order
-        const order = await prisma.order.create({
-            data: {
-                userId: intent.userId, // This will be "guest"
-                cardType: intent.productType,
-                quantity: parseInt(intent.quantity),
-                totalAmount: parseFloat(intent.totalAmount),
-                status: "COMPLETED",
-                reference: reference
+        await prisma.guestTransaction.upsert({
+            where: { reference },
+            update: {
+                status: "SUCCESS",
             },
+            create: {
+                id: reference,  // or uuid()
+                reference,
+                firstname: "Guest",
+                lastname: "",
+                email: intent.email,
+                phone: "",
+                product: intent.productType,
+                quantity: intent.quantity,
+                total: intent.totalAmount,
+                purpose: "Payment",
+                status: "SUCCESS",
+            }
         });
-
-        // Generate cards
-        const cards = await generateScratchCards(
-            intent.productType,
-            parseInt(intent.quantity),
-            order.id
-        );
 
         // Send email with cards
         await sendScratchCardsEmail({
-            email: intent.email,
+            to: intent.email, // confirm this value exists
             userName: intent.userName || "Customer",
-            cards: cards,
-            orderDetails: {
-                orderNumber: order.id,
-                cardType: intent.productType,
-                quantity: parseInt(intent.quantity),
-                totalAmount: parseFloat(intent.totalAmount)
-            }
+            orderReference: intent.reference,
+            cardType: intent.productType,
+            quantity: parseInt(intent.quantity),
+            totalAmount: parseFloat(intent.totalAmount),
+            scratchCards: [
+                {
+                    pin: '1234-5678-9012',
+                    serialNumber: 'SN123456789'
+                },
+                {
+                    pin: '9876-5432-1098',
+                    serialNumber: 'SN987654321'
+                }
+            ]
+            //scratchCards: cards.map(c => ({
+            //     pin: c.pin,
+            //   serialNumber: c.serialNumber,
+            // })), 
         });
+
 
         // Clean up the payment intent from Redis
         await deletePaymentIntent(reference);
