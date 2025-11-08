@@ -168,10 +168,6 @@ export default function PurchasesPage() {
              
                 {selectedOrder?.id === order.id && (
                   <div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
                     className="mt-4 overflow-hidden"
                   >
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -179,7 +175,6 @@ export default function PurchasesPage() {
                       {order.cards.map((card, i) => (
                         <div
                           key={card.id}
-                          whileHover={{ scale: 1.02 }}
                           className="bg-muted/10 border rounded-xl p-3 flex flex-col gap-2"
                         >
                           {/* HEADER */}
