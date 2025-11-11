@@ -1,135 +1,122 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  // const { data: session } = useSession();
   const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying");
 
   useEffect(() => {
-    const verifyTransaction = async () => {
-      const reference = searchParams.get("reference");
-
-      if (!reference) {
-        toast.error("Invalid payment reference");
+    const verify = async () => {
+      const ref = searchParams.get("reference");
+      if (!ref) {
+        toast.error("Invalid reference");
         setStatus("failed");
         return;
       }
-
       try {
-        console.log("🔍 Verifying payment with reference:", reference);
-
-        // Verify payment with our API
-        const response = await fetch("/api/payments/verify/guest", {
+        const res = await fetch("/api/payments/verify/guest", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            reference
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reference: ref }),
         });
-
-        const result = await response.json();
-
-        console.log("📦 Verification API response:", result);
-
-        if (response.ok && result.success) {
-          // Success case - whether it's new or existing transaction
-          if (result.data?.existing) {
-            toast.success("Payment successful! Your order was already processed.");
-          } else {
-            toast.success("Payment successful! Order created.");
-          }
+        const data = await res.json();
+        if (res.ok && data.success) {
           setStatus("success");
-
-          // Redirect to orders page after 2 seconds
-          setTimeout(() => {
-            router.push("/");
-          }, 5000);
+          toast.success("Payment confirmed!");
+          setTimeout(() => router.push("/"), 20000);
         } else {
-          // Actual failure case
-          console.error("❌ Payment verification failed:", result.error);
-          toast.error(result.error || "Payment verification failed");
           setStatus("failed");
+          toast.error(data.error || "Verification failed");
         }
-      } catch (error) {
-        console.error("💥 Verification error:", error);
-        // Even if verification API fails, the payment might still be successful
-        // Let's check if we can find the transaction
-        try {
-          const checkResponse = await fetch(`/api/check-orders?reference=${searchParams.get("reference")}`);
-          const checkResult = await checkResponse.json();
-
-          if (checkResult.success && checkResult.orders > 0) {
-            // Orders exist, so payment was successful
-            toast.success("Payment successful! Your order has been processed.");
-            setStatus("success");
-            setTimeout(() => {
-              router.push("/dashboard/purchases");
-            }, 2000);
-          } else {
-            toast.error("Payment status uncertain. Please check your orders.");
-            setStatus("failed");
-          }
-        } catch {
-          toast.error("Payment verification failed. Please check your orders.");
-          setStatus("failed");
-        }
+      } catch {
+        setStatus("failed");
+        toast.error("Something went wrong");
       }
     };
-      verifyTransaction();
-
-  }, [searchParams, router]);
+    verify();
+  }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
+    <div className="relative min-h-screen bg-[#0A0F1F] flex items-center justify-center p-4 overflow-hidden">
+
+      {/* Background effects */}
+      <div className="absolute -top-40 -left-40 w-80 h-80 bg-purple-600 rounded-full blur-[160px] opacity-50" />
+      <div className="absolute bottom-0 right-0 w-72 h-72 bg-cyan-500 rounded-full blur-[150px] opacity-40" />
+
+      {/* Main card */}
+      <div className="relative w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+
+        {/* STATUS SWITCH */}
         {status === "verifying" && (
-          <>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <h2 className="text-xl font-semibold">Verifying Payment...</h2>
-            <p className="text-muted-foreground">Please wait while we confirm your payment</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Reference: {searchParams.get("reference")}
+          <div className="text-center space-y-5 bg-">
+            <div className="mx-auto w-20 h-20 border-[6px] border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+              Verifying Payment
+            </h2>
+            <p className="text-gray-300 text-sm">Confirming your transaction, hold tight...</p>
+            <p className="text-[11px] text-gray-500 font-mono mt-2">
+              REF: {searchParams.get("reference")}
             </p>
-          </>
+          </div>
         )}
 
         {status === "success" && (
-          <>
-            <div className="w-12 h-12 bg-success rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <div className="text-center space-y-5 animate-fadeIn">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50">
+              <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-success">Payment Successful!</h2>
-            <p className="text-muted-foreground">Redirecting to your purchases...</p>
-          </>
+
+            <h2 className="text-3xl font-bold text-white">Payment Successful!</h2>
+            <p className="text-gray-300 text-sm">Redirecting you shortly...</p>
+
+            {/* Progress bar */}
+            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mt-4">
+              <div className="h-full bg-gradient-to-r from-green-400 to-emerald-600 animate-progress"></div>
+            </div>
+          </div>
         )}
 
         {status === "failed" && (
-          <>
-            <div className="w-12 h-12 bg-destructive rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <div className="text-center space-y-5 animate-fadeIn">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-red-400 to-red-700 rounded-full flex items-center justify-center shadow-lg shadow-red-500/50">
+              <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="3">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-destructive">Payment Failed</h2>
-            <p className="text-muted-foreground mb-4">Please try again or contact support</p>
+
+            <h2 className="text-3xl font-bold text-white">Payment Failed</h2>
+            <p className="text-gray-300 text-sm">Please retry or contact support</p>
+
             <button
               onClick={() => router.push("/dashboard")}
-              className="bg-primary text-white px-4 py-2 rounded"
+              className="mt-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl transition-all shadow-lg hover:scale-[1.03]"
             >
-              Return to Dashboard
+              Back to Dashboard
             </button>
-          </>
+          </div>
         )}
       </div>
+
+      {/* Animations */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {opacity: 0; transform: translateY(10px);}
+          to {opacity: 1; transform: translateY(0);}
+        }
+        @keyframes progress {
+          from {width: 0%}
+          to {width: 100%}
+        }
+        .animate-fadeIn { animation: fadeIn 0.6s ease-out }
+        .animate-progress { animation: progress 4s linear forwards }
+      `}</style>
     </div>
   );
 }

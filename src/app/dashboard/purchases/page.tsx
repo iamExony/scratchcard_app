@@ -25,6 +25,7 @@ interface ScratchCard {
   serialNumber: string;
   value: string;
   isUsed: boolean;
+  isImage?: boolean;
   status: string;
   createdAt: string;
 }
@@ -60,13 +61,34 @@ export default function PurchasesPage() {
   const downloadPins = (order: Order) => {
     const pins = order.cards.map((c, i) => `PIN ${i + 1}: ${c.pin}`).join("\n");
     const serials = order.cards.map((c, i) => `SERIAL ${i + 1}: ${c.serialNumber}`).join("\n");
-    const blob = new Blob([pins + "\n\n" + serials], { type: "text/plain" });
+    const imageUrls = order.cards
+      .map((c, i) => (c.isImage && isValidUrl(c.value) ? `IMAGE URL ${i + 1}: ${c.value}` : null))
+      .filter(Boolean)
+      .join("\n");
+
+    const sections = [pins, serials];
+    if (imageUrls) sections.push("", imageUrls as string);
+
+    const blob = new Blob([sections.join("\n\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `SCRATCH_${order.reference}.txt`;
     a.click();
     toast.success("File downloaded!");
+  };
+
+  const isValidUrl = (val?: string) => {
+    if (!val) return false;
+    try {
+      // Treat absolute http(s) and root-relative paths as valid
+      if (val.startsWith("http://") || val.startsWith("https://") || val.startsWith("/")) return true;
+      // Basic URL constructor check
+      new URL(val);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const statusVariant = (s: string) =>
@@ -182,13 +204,20 @@ export default function PurchasesPage() {
                             <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded">
                               #{i + 1}
                             </span>
-                            <span
-                              className={`text-xs px-2 py-1 rounded ${
-                                card.isUsed ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-                              }`}
-                            >
-                              {card.isUsed ? "Used" : "Unused"}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              {card.isImage ? (
+                                <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                                  Image Card
+                                </span>
+                              ) : null}
+                              <span
+                                className={`text-xs px-2 py-1 rounded ${
+                                  card.isUsed ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+                                }`}
+                              >
+                                {card.isUsed ? "Used" : "Unused"}
+                              </span>
+                            </div>
                           </div>
 
                           {/* PIN */}
@@ -206,6 +235,36 @@ export default function PurchasesPage() {
                               {card.serialNumber}
                             </div>
                           </div>
+
+                          {/* IMAGE PREVIEW (if available) */}
+                          {card.isImage && isValidUrl(card.value) && (
+                            <div>
+                              <p className="text-[11px] font-medium text-muted-foreground uppercase">Image</p>
+                              <div className="border rounded overflow-hidden bg-background">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={card.value}
+                                  alt={`Card ${i + 1} image`}
+                                  className="w-full h-56 object-contain bg-white"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <div className="mt-2 flex justify-end">
+                                <Button size="sm" variant="outline" asChild>
+                                  <a href={card.value} target="_blank" rel="noreferrer">
+                                    Open Image
+                                  </a>
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Image info fallback when no URL available */}
+                          {card.isImage && !isValidUrl(card.value) && (
+                            <div className="text-xs text-muted-foreground">
+                              This is an image card, but no preview URL is available.
+                            </div>
+                          )}
 
                           {/* COPY BUTTONS */}
                           <div className="flex justify-between">

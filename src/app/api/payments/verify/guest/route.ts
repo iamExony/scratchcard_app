@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
+
+
         // Get payment intent from Redis
         const intent = await getPaymentIntent(reference);
         if (!intent) {
@@ -35,49 +37,90 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create guest order
-        await prisma.guestTransaction.upsert({
-            where: { reference },
-            update: {
-                status: "SUCCESS",
-            },
-            create: {
-                id: reference,  // or uuid()
-                reference,
-                firstname: "Guest",
-                lastname: "",
-                email: intent.email,
-                phone: "",
-                product: intent.productType,
-                quantity: intent.quantity,
-                total: intent.totalAmount,
-                purpose: "Payment",
-                status: "SUCCESS",
-            }
-        });
+        console.log("🔍 Guest payment intent:", intent);
+        const result = await prisma.$transaction(async (tx) => {
+
+            // Create guest order
+            const transaction = await tx.guestTransaction.upsert({
+                where: { reference },
+                update: {
+                    status: "SUCCESS",
+                },
+                create: {
+                    id: reference,  // or uuid()
+                    reference,
+                    firstname: intent.firstname,
+                    lastname: intent.lastname,
+                    email: intent.email,
+                    phone: intent.phone,
+                    product: intent.productType,
+                    quantity: intent.quantity,
+                    total: intent.totalAmount,
+                    purpose: "Payment",
+                    status: "SUCCESS",
+                }
+            });
+
+            // Create order record
+            
+        const order = await tx.order.create({
+                data: {
+                    userId: intent.userId === "guest" ? null : intent.userId,
+                    cardType: intent.productType,
+                    quantity: intent.quantity,
+                    totalAmount: parseFloat(intent.totalAmount),
+                    reference: reference,
+                    status: "PROCESSING",
+                },
+            });
+
+            // Link transaction to order
+            await tx.guestTransaction.update({
+                where: { id: transaction.id },
+                data: { orderId: order.id },
+            });
+
+            // Generate scratch cards
+            const scratchCards = await tx.scratchCard.findMany({
+                where: { status: "AVAILABLE" },
+                take: intent.quantity,
+                select: { id: true, pin: true, serialNumber: true }
+            })
+
+            await tx.scratchCard.updateMany({
+                where: { id: { in: scratchCards.map(card => card.id) } },
+                data: {
+                    status: "SOLD",
+                    purchasedBy: intent.userName,
+                    purchasedAt: new Date(),
+                    orderId: order.id
+                }
+            })
+
+
+            // Update order status to completed
+            const updatedOrder = await tx.order.update({
+                where: { id: order.id },
+                data: { status: "COMPLETED" },
+                include: { cards: true },
+            });
+
+            return { order: updatedOrder, cards: scratchCards, transaction };
+        })
+
 
         // Send email with cards
         await sendScratchCardsEmail({
             to: intent.email, // confirm this value exists
             userName: intent.userName || "Customer",
-            orderReference: intent.reference,
+            orderReference: reference,
             cardType: intent.productType,
             quantity: parseInt(intent.quantity),
             totalAmount: parseFloat(intent.totalAmount),
-            scratchCards: [
-                {
-                    pin: '1234-5678-9012',
-                    serialNumber: 'SN123456789'
-                },
-                {
-                    pin: '9876-5432-1098',
-                    serialNumber: 'SN987654321'
-                }
-            ]
-            //scratchCards: cards.map(c => ({
-            //     pin: c.pin,
-            //   serialNumber: c.serialNumber,
-            // })), 
+            scratchCards: result.cards.map(c => ({
+                pin: c.pin,
+                serialNumber: c.serialNumber,
+            })),
         });
 
 

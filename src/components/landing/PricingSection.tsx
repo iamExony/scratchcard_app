@@ -1,6 +1,14 @@
 "use client";
 
 import { Check, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useLoadingOverlay } from "./LoadingOverlay";
+
+function RegisterButton({ children, className }: { children: React.ReactNode, className?: string }) {
+  const router = useRouter();
+  const { show: showLoader } = useLoadingOverlay();
+  return <button className={className} onClick={() => { showLoader(); router.push("/register"); }}>{children}</button>;
+}
 
 export default function PricingSection() {
   const plans = [
@@ -130,16 +138,11 @@ export default function PricingSection() {
               </ul>
 
               {/* CTA Button */}
-              <button
-                onClick={() => window.location.href = '/register'}
-                className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
-                  plan.popular
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
-                    : "bg-gray-900 hover:bg-gray-800 text-white"
-                }`}
-              >
-                Get {plan.cardType} Card
-              </button>
+              <RegisterButton className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
+                plan.popular
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-gray-900 hover:bg-gray-800 text-white"
+              }`}>Get Started</RegisterButton>
             </div>
           ))}
         </div>

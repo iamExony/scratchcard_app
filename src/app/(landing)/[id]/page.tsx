@@ -3,9 +3,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { products } from "@/components/landing/products";
-import React, { useState, use } from "react";
+import React, { useState, use, useEffect, useRef } from "react";
+import { useLoadingOverlay } from "@/components/landing/LoadingOverlay";
 import { useRouter } from "next/navigation";
-import ConfirmationPage from "../confirmation/page";
 import { generateReference } from "@/lib/utils";
 
 
@@ -13,14 +13,13 @@ interface DetailPageProp {
     params: Promise<{ id: string }>;
 }
 
-export default function DetailPage({ params }: DetailPageProp) {
 
+export default function DetailPage({ params }: DetailPageProp) {
     const { id } = use(params);
     const cards = products.find((card) => card.id === id)
     const router = useRouter();
-    const [next, setNext] = useState(false)
-    const [userData, setUserData] = useState({});
-
+    const [loading, setLoading] = useState(false);
+    const { hide } = useLoadingOverlay();
 
     const [form, setForm] = useState({
         firstname: '',
@@ -47,26 +46,50 @@ export default function DetailPage({ params }: DetailPageProp) {
         }))
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const hasNavigated = useRef(false);
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
-        const referenceId = generateReference()
+        const referenceId = generateReference();
         const purpose = `${handleTitleSelect(cards?.title)} Scratch Card Purchase`;
 
-        setUserData({
+        const userData = {
             ...form,
             product: cards?.title,
             total: cards ? (parseInt(cards.price.replace('₦', '').replace(',', '')) * form.quantity) : 0,
             referenceId,
             purpose
-        });
+        };
 
-        setNext(true);
-
+        // Store in sessionStorage and navigate
+        sessionStorage.setItem('purchaseData', JSON.stringify(userData));
+        hasNavigated.current = true;
+        await router.push('/confirmation');
+        hide(); // Hide the loading overlay after navigation
     }
+
+    // Stop loading if route changes (in case router.push doesn't unmount component immediately)
+    useEffect(() => {
+        if (hasNavigated.current) {
+            setLoading(false);
+            hide();
+        }
+    }, [hide]);
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Processing your order...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div>
-            {!next ? (<div className="flex flex-col w-[90%] mx-auto my-5 gap-5">
+            <div className="flex flex-col w-[90%] mx-auto my-5 gap-5">
                 <h1 className="bg-gray-50 py-5 text-center text-sm md:text-2xl font-semibold ">{handleTitleSelect(cards?.title)} Scratch Card Online</h1>
                 <div className="flex flex-col md:flex-row gap-5 md:gap-10 md:justify-between">
                     <div className="w-full md:w-1/2 mx-auto flex flex-col gap-3">
@@ -186,13 +209,9 @@ export default function DetailPage({ params }: DetailPageProp) {
                     href="/"
                     className="inline-block bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2 rounded-md transition"
                 >
-                    ← Back to Home
+                    Back to Home
                 </Link>
-            </div>) : (
-                <ConfirmationPage data={userData} />
-            )}
-
+            </div>
         </div>
-
     )
 }

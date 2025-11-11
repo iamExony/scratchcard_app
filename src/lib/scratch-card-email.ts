@@ -11,6 +11,8 @@ interface SendScratchCardsEmailParams {
   scratchCards: Array<{
     pin: string;
     serialNumber: string;
+    isImage?: boolean;
+    value?: string;
   }> | null;
 }
 

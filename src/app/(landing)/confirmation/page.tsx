@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface ConfirmationPageProps {
     firstname?: string,
@@ -16,8 +17,31 @@ interface ConfirmationPageProps {
     purpose?: string
 }
 
-export default function ConfirmationPage({ data }: { data?: ConfirmationPageProps }) {
+export default function ConfirmationPage() {
     const [processing, setProcessing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState<ConfirmationPageProps | null>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        // Retrieve data from sessionStorage
+        const storedData = sessionStorage.getItem('purchaseData');
+        if (storedData) {
+            setData(JSON.parse(storedData));
+        }
+        setLoading(false);
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center">
+                    <div className="h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!data) {
         return (
@@ -33,39 +57,46 @@ export default function ConfirmationPage({ data }: { data?: ConfirmationPageProp
         );
     }
 
+    const handleProductType = (productType: string | undefined) => {
+        return productType ? productType.toUpperCase().split(" ")[0] : "WAEC";
+    }
     const checkAvailability = async () => {
         try {
-            const cleanProductType = data.product ? data.product.toUpperCase().split(" ")[0] : "WAEC";
-            const response = await fetch(`/api/cards/check-availability?type=${encodeURIComponent(cleanProductType)}&quantity=${data.quantity}`);
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Failed to check availability');
+            if (!data.quantity || !data.product) {
+                toast.error("Invalid product or quantity.");
+                return false;
             }
 
-            return result.available;
+            const cleanProductType = data.product.toUpperCase().split(" ")[0];
+            const response = await fetch(`/api/cards/availability?type=${cleanProductType}&quantity=${data.quantity}`);
+            const responses = await response.json();
+
+            if (!responses.available) {
+                toast.error(`Only ${responses.availableCount} ${cleanProductType} cards available. Required: ${data.quantity}`);
+                return false;
+            }
+            return true;
         } catch (error) {
-            console.error('Availability check error:', error);
-            return false;
+            console.error("Error checking availability:", error);
+            return true;
         }
     };
 
     const handlePayment = async () => {
-        try {
-            setProcessing(true);
+        setProcessing(true);
 
+        try {
             // Check availability first
             const isAvailable = await checkAvailability();
 
             if (!isAvailable) {
-                toast.error("This card is not available at the moment. Please check back later.");
+                //toast.error("This card is not available at the moment. Please check back later.");
                 setProcessing(false);
                 return;
             }
 
             // Store payment intent
-            const storeResponse = await fetch('/api/payments/store-intent', {
+            const storeResponse = await fetch('/api/payments/store-intent/guest', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -73,11 +104,14 @@ export default function ConfirmationPage({ data }: { data?: ConfirmationPageProp
                 body: JSON.stringify({
                     reference: data.referenceId,
                     userId: 'guest',
-                    productType: data.product,
+                    productType: handleProductType(data?.product),
                     quantity: data.quantity,
                     unitPrice: data.total! / (data.quantity || 1),
                     totalAmount: data.total,
                     email: data.email,
+                    firstname: data.firstname || 'Customer',
+                    lastname: data.lastname || 'Customer',
+                    phone: data.phone || '0000000000',
                     userName: `${data.firstname} ${data.lastname}` || 'Customer',
                 }),
             });
@@ -102,7 +136,7 @@ export default function ConfirmationPage({ data }: { data?: ConfirmationPageProp
                     metadata: {
                         name: `${data.firstname} ${data.lastname}`,
                         phone: data.phone,
-                        productType: data.product,
+                        productType: handleProductType(data.product),
                         quantity: data.quantity,
                         userId: 'guest',
                     }

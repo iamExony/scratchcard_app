@@ -11,6 +11,8 @@ interface BaseEmailParams {
 interface CardDetails {
   pin: string;
   serialNumber: string;
+  isImage?: boolean;
+  value?: string;
 }
 
 export function generateScratchCardEmail(params: BaseEmailParams & {
@@ -63,6 +65,23 @@ export function generateScratchCardEmail(params: BaseEmailParams & {
       margin-bottom: 10px;
       border-radius: 5px;
     }
+    .card-image {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      margin: 10px 0;
+      display: block;
+    }
+    .image-badge {
+      display: inline-block;
+      background: #0056b3;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 0.8em;
+      margin-bottom: 10px;
+    }
     .warning {
       background: #fff3cd;
       color: #856404;
@@ -106,13 +125,27 @@ export function generateScratchCardEmail(params: BaseEmailParams & {
       ${scratchCards ? `
         <div class="card-details">
           <h3>Your Card Details:</h3>
-          ${scratchCards.map((card, index) => `
+          ${scratchCards.map((card, index) => {
+            const isValidUrl = (val?: string) => {
+              if (!val) return false;
+              return val.startsWith('http://') || val.startsWith('https://') || val.startsWith('/');
+            };
+            
+            return `
             <div class="card-item">
               <p><strong>Card ${index + 1}:</strong></p>
+              ${card.isImage ? '<span class="image-badge">Image Card</span>' : ''}
               <p><strong>Serial Number:</strong> ${card.serialNumber}</p>
               <p><strong>PIN:</strong> ${card.pin}</p>
+              ${card.isImage && card.value && isValidUrl(card.value) ? `
+                <p><strong>Card Image:</strong></p>
+                <img src="${card.value}" alt="Scratch Card ${index + 1}" class="card-image" />
+                <p style="font-size: 0.9em; color: #6c757d;">
+                  <a href="${card.value}" target="_blank" style="color: #0056b3;">Click here to view full size image</a>
+                </p>
+              ` : ''}
             </div>
-          `).join('')}
+          `}).join('')}
           
           <div class="warning">
             <p><strong>Important:</strong></p>

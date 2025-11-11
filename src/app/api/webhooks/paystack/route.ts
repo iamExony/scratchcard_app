@@ -390,7 +390,9 @@ async function handlePurchasePayment(reference: string, amount: number, metadata
             totalAmount: parseFloat(intent.totalAmount),
             scratchCards: orderResult.scratchCards.map((card: any) => ({
               pin: card.pin,
+              serialNumber: card.pin, // Using pin as serial number for now
               value: card.value,
+              isImage: card.isImage,
             })),
           },
         });

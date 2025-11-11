@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { verifyPayment } from "@/lib/paystack";
+import { sendScratchCardsEmail } from "@/lib/scratch-card-email";
+import { getPaymentIntent } from "@/lib/redis";
 
 const prisma = new PrismaClient();
 
@@ -62,8 +64,9 @@ export async function GET(request: NextRequest) {
 // Handle POST requests (for your existing purchase flow)
 export async function POST(request: NextRequest) {
   try {
+    
     const { reference, userId } = await request.json();
-
+    
     console.log("🔍 POST Verify payment request:", { reference, userId });
 
     if (!reference) {
@@ -105,6 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If transaction doesn't exist and we have userId, create it
+    const intent = await getPaymentIntent(reference);
     if (userId) {
       // Start database transaction
       const result = await prisma.$transaction(async (tx) => {
@@ -119,15 +123,21 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        
+
+        if (!intent) {
+          throw new Error("Payment intent not found for reference: " + reference);
+        }
+        console.log("✅ Retrieved payment intent from Redis on Verify:", intent);
+
         // Create order record
-        // Create order
         const order = await tx.order.create({
           data: {
-            userId,
-            cardType,
-            quantity,
-            totalAmount,
-            reference: orderReference,
+            userId: intent.userId,
+            cardType: intent.productType,
+            quantity: intent.quantity,
+            totalAmount: parseFloat(intent.totalAmount),
+            reference: reference,
             status: "PROCESSING",
           },
         });
@@ -138,20 +148,10 @@ export async function POST(request: NextRequest) {
           data: { orderId: order.id },
         });
 
-        // Deduct from user balance
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            balance: {
-              decrement: totalAmount
-            }
-          }
-        });
-
         // Generate scratch cards
         const scratchCards = await tx.scratchCard.findMany({
           where: { status: "AVAILABLE" },
-          take: quantity,
+          take: intent.quantity,
           select: { id: true, pin: true, serialNumber: true }
         })
 
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
           where: { id: { in: scratchCards.map(card => card.id) } },
           data: {
             status: "SOLD",
-            purchasedBy: userId,
+            purchasedBy: intent.userId,
             purchasedAt: new Date(),
             orderId: order.id
           }
@@ -174,23 +174,23 @@ export async function POST(request: NextRequest) {
         });
 
         // Send email with cards
+
+
+        return { order: updatedOrder, cards: scratchCards, transaction };
+      });
+
         await sendScratchCardsEmail({
-          to: userEmail, // confirm this value exists
-          userName: userEmail || "Customer",
+          to: intent.email, // confirm this value exists
+          userName: intent.userName || "Customer",
           orderReference: reference,
-          cardType: cardType,
-          quantity: parseInt(quantity),
-          totalAmount: parseFloat(totalAmount),
-          scratchCards: scratchCards.map(c => ({
+          cardType: intent.productType,
+          quantity: parseInt(intent.quantity),
+          totalAmount: parseFloat(intent.totalAmount),
+          scratchCards: result.cards.map(c => ({
             pin: c.pin,
             serialNumber: c.serialNumber,
           }))
         });
-
-        return { order: updatedOrder, cards: scratchCards, transaction };
-
-      });
-
       return NextResponse.json({
         success: true,
         message: "Payment verified and transaction created successfully",

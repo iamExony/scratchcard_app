@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import { Toaster } from "sonner";
+import { PageLoader } from "@/components/PageLoader";
+import { NavigationLoader } from "@/components/NavigationLoader";
 
 export const metadata: Metadata = {
   title: "Scratchcard App",
@@ -16,8 +19,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SessionProviderWrapper>
+          <PageLoader />
+          <NavigationLoader />
           {children}
-          </SessionProviderWrapper>
+          <Toaster position="top-right" richColors />
+        </SessionProviderWrapper>
       </body>
     </html>
   );

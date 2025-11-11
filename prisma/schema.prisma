@@ -40,19 +40,20 @@ model ScratchCard {
 }
 
 model Order {
-  id           String        @id @default(uuid())
-  userId       String
-  cardType     CardType
-  quantity     Int
-  totalAmount  Float
-  status       OrderStatus   @default(PENDING)
-  reference    String        @unique
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  emailLogs    EmailLog[]
-  user         User          @relation(fields: [userId], references: [id])
-  cards        ScratchCard[]
-  transactions Transaction[]
+  id                  String        @id @default(uuid())
+  userId              String?
+  cardType            CardType
+  quantity            Int
+  totalAmount         Float
+  status              OrderStatus   @default(PENDING)
+  reference           String        @unique
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  emailLogs           EmailLog[]
+  user                User?          @relation(fields: [userId], references: [id])
+  cards               ScratchCard[]
+  transactions        Transaction[]
+  guestTransaction    GuestTransaction[]
 }
 
 model Transaction {
@@ -79,7 +80,7 @@ model EmailLog {
   cardType  CardType?
   createdAt DateTime    @default(now())
   order     Order?      @relation(fields: [orderId], references: [id])
-  user      User        @relation(fields: [userId], references: [id])
+  user      User?        @relation(fields: [userId], references: [id])
 }
 
 model ContactMessage {
@@ -128,7 +129,10 @@ model GuestTransaction {
   purpose      String
   status       String   @default("PENDING")
   paystackData Json?
+  orderId      String?
+  order        Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
+  
 }
 
 enum Role {

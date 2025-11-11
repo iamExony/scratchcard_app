@@ -70,7 +70,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
       to,
       subject,
       from: process.env.EMAIL_FROM || 'noreply@scratchcard.com',
-      fromName: process.env.EMAIL_FROM_NAME || 'ResultPins'
+      fromName: process.env.EMAIL_FROM_NAME || 'ScratchCard Admin'
     });
 
     // Verify connection first

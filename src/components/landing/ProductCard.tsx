@@ -1,8 +1,11 @@
+"use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLoadingOverlay } from "./LoadingOverlay";
+
 interface ProductCardProps {
   title: string;
   price: string;
@@ -13,6 +16,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ title, price, description, image, inStock = true, id }: ProductCardProps) => {
+  const router = useRouter();
+  const { show: showLoader } = useLoadingOverlay();
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border border-border">
       <CardContent className="p-6">
@@ -30,7 +35,7 @@ const ProductCard = ({ title, price, description, image, inStock = true, id }: P
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-lg text-card-foreground">{title}</h3>
             {inStock && (
-              <Badge variant="secondary" className="text-success bg-success/10 border-success/20">
+              <Badge variant="secondary-hero" className="text-success bg-success/10 border-success/20">
                 In Stock
               </Badge>
             )}
@@ -39,9 +44,9 @@ const ProductCard = ({ title, price, description, image, inStock = true, id }: P
           <p className="text-muted-foreground text-sm">{description}</p>
           
           <div className="flex items-center justify-between pt-2">
-            <span className="text-2xl font-bold text-primary">{price}</span>
-            <Button size="sm" className="bg-primary hover:bg-primary-hover">
-              <Link href={`${id}`}>Buy Now</Link>
+            <span className="text-2xl font-bold text-primary-landing">{price}</span>
+            <Button size="sm" className="bg-primary-landing hover:bg-primary-landing/80" onClick={() => { showLoader(); router.push(`/${id}`); }}>
+              Buy Now
             </Button>
           </div>
         </div>

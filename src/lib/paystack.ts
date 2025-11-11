@@ -96,7 +96,7 @@ export async function verifyPayment(reference: string): Promise<VerifyPaymentRes
     }
 
     const responseData = await response.json();
-    console.log("✅ Paystack verification success:", responseData);
+    //console.log("✅ Paystack verification success:", responseData);
     
     return responseData;
   } catch (error) {
