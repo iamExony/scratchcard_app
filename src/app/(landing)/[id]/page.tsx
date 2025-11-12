@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { products } from "@/components/landing/products";
-import React, { useState, use, useEffect, useRef } from "react";
+import React, { useState, use, useEffect, useRef, Suspense } from "react";
 import { useLoadingOverlay } from "@/components/landing/LoadingOverlay";
 import { useRouter } from "next/navigation";
 import { generateReference } from "@/lib/utils";
@@ -14,7 +14,7 @@ interface DetailPageProp {
 }
 
 
-export default function DetailPage({ params }: DetailPageProp) {
+function DetailPageInner({ params }: DetailPageProp) {
     const { id } = use(params);
     const cards = products.find((card) => card.id === id)
     const router = useRouter();
@@ -214,4 +214,12 @@ export default function DetailPage({ params }: DetailPageProp) {
             </div>
         </div>
     )
+}
+
+export default function DetailPage(props: DetailPageProp) {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <DetailPageInner {...props} />
+        </Suspense>
+    );
 }

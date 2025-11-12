@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ interface ConfirmationPageProps {
     purpose?: string
 }
 
-export default function ConfirmationPage() {
+function ConfirmationPageInner() {
     const [processing, setProcessing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<ConfirmationPageProps | null>(null);
@@ -217,5 +217,13 @@ export default function ConfirmationPage() {
                 </Link>
             </div>
         </div>
+    );
+}
+
+export default function ConfirmationPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ConfirmationPageInner />
+        </Suspense>
     );
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../shared-colors.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -18,9 +19,11 @@
   --color-popover-foreground: var(--popover-foreground);
 
   --color-primary: var(--primary);
+  --color-primary-landing: var(--primary-landing);
   --color-primary-foreground: var(--primary-foreground);
 
   --color-secondary: var(--secondary);
+  --color-secondary-hero: var(--secondary-hero);
   --color-secondary-foreground: var(--secondary-foreground);
 
   --color-muted: var(--muted);

@@ -1,5 +1,8 @@
 // app/admin/email/page.tsx
 "use client";
+export const dynamic = "force-dynamic";
+
+
 
 import { EmailManagement } from "../components/EmailManagement";
 

@@ -1,3 +1,6 @@
+
+import "./shared-colors.css";
+import "./(landing)/globals.css";
 import type { Metadata } from "next";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import { Toaster } from "sonner";

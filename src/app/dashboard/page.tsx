@@ -1,4 +1,6 @@
 "use client";
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { StatsCard } from "./components/StatsCard";
 import { ActionCard } from "./components/ActionCard";
@@ -19,7 +21,9 @@ interface UserStats {
   completedOrders: number;
 }
 
-const Index = () => {
+import { Suspense } from "react";
+
+function DashboardPageInner() {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -232,4 +236,10 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardPageInner />
+    </Suspense>
+  );
+}

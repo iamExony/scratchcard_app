@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 const navLinks = [
   { label: "Home", href: "/", section: "home" },
   { label: "About", href: "#about", section: "about" },
-  { label: "Pricing", href: "#pricing", section: "pricing" },
   { label: "Products", href: "#products", section: "products" },
   { label: "Contact", href: "#contact", section: "contact" },
 ];
@@ -44,7 +43,7 @@ const Navigation = () => {
       let current = "home";
       for (let i = 0; i < offsets.length; i++) {
         if (scrollY >= offsets[i].top) {
-          current = offsets[i].section;
+          current = offsets[i].section ;
         }
       }
       setActiveSection(current);
@@ -91,11 +90,11 @@ const Navigation = () => {
             ))}
           </div>
           {/* Login/Register at right */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center  gap-3">
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full border-primary-landing text-primary-landing font-semibold shadow-sm hover:bg-primary-landing/10"
+              className="rounded-md  border-primary-landing cursor-pointer text-primary-landing font-semibold  hover:bg-primary-landing"
               onClick={() => {
                 showLoader();
                 router.push("/login");
@@ -105,7 +104,7 @@ const Navigation = () => {
             </Button>
             <Button
               size="sm"
-              className="rounded-full bg-primary-landing text-white font-semibold shadow-md hover:bg-primary-landing/80"
+              className="rounded-md cursor-pointer  bg-primary-landing text-white font-semibold  hover:bg-primary-landing/80"
               onClick={() => {
                 showLoader();
                 router.push("/register");

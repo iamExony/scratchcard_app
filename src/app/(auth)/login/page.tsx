@@ -1,11 +1,13 @@
-"use client";
 
-import { useState, useEffect } from "react";
+"use client";
+export const dynamic = "force-dynamic";
+
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
@@ -70,19 +72,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        {/* <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-lg">R</span>
-          </div>
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Welcome back
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to your account to continue
-          </p>
-        </div> */}
-
         {/* Login Form */}
         <div className="bg-white py-8 px-6 shadow rounded-lg sm:px-10 ">
           {message && (
@@ -194,14 +183,15 @@ export default function LoginPage() {
             </div>
           </form>
         </div>
-
-        {/* Footer */}
-       {/*  <div className="text-center">
-          <p className="text-xs text-gray-500">
-            &copy; 2024 ResultPins. All rights reserved.
-          </p>
-        </div> */}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageInner />
+    </Suspense>
   );
 }

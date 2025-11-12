@@ -1,0 +1,6 @@
+/* Shared color variables for all layouts */
+:root {
+  --color-primary-landing: #2563eb;
+  --color-secondary-hero: #f1f5f9;
+  /* Add more shared variables as needed */
+}

@@ -1,5 +1,7 @@
-// app/admin/cards/page.tsx
+
 "use client";
+export const dynamic = "force-dynamic";
+// app/admin/cards/page.tsx
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

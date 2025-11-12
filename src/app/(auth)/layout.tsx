@@ -1,4 +1,4 @@
-import "./globals.css";
+import "../dashboard/theme.css";
 import Navigation from "@/components/landing/Navigation";
 import Footer from "@/components/landing/Footer";
 // import Header from "@/components/landing/Header";

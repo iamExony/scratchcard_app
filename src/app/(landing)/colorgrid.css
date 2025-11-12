@@ -1,7 +1,8 @@
 @import "tailwindcss";
-@import "../shared-colors.css";
 
 @custom-variant dark (&:is(.dark *));
+
+
 
 @theme inline {
 
@@ -26,14 +27,14 @@
   --color-popover-foreground: var(--popover-foreground);
 
   --color-primary: var(--primary);
-  --color-primary-landing: var(--primary-landing);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
 
   --color-primary-foreground: var(--primary-foreground);
 
   --color-primary-hover: var(--primary-hover);
 
   --color-secondary: var(--secondary);
-  --color-secondary-hero: var(--secondary-hero);
 
   --color-secondary-foreground: var(--secondary-foreground);
 
@@ -83,93 +84,42 @@
 }
 
 :root {
-
   --radius: 0.625rem;
-
-  --background: hsl(0 0% 100%);
-
-  --foreground: hsl(215 16% 20%);
-
-  --card: hsl(0 0% 100%);
-
-  --card-foreground: hsl(215 16% 20%);
-
-  --popover: hsl(0 0% 100%);
-
-  --popover-foreground: hsl(215 16% 20%);
-
-  --primary: hsl(213 93% 50%);
-  --primary-landing: #FF5208;
-
-  --primary-foreground: hsl(0 0% 100%);
-
-  --primary-hover: hsl(213 93% 45%);
-
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-hero: #FFC218;
-
-  --secondary-foreground: hsl(213 93% 50%);
-
-  --muted: oklch(0.968 0.007 247.896);
-
-  --muted-foreground: oklch(0.554 0.046 257.417);
-
-  --accent: oklch(0.968 0.007 247.896);
-
-  --accent-foreground: hsl(213 93% 50%);
-
-  --destructive: oklch(0.577 0.245 27.325);
-
-  --border: oklch(0.929 0.013 255.508);
-
-  --input: oklch(0.929 0.013 255.508);
-
-  --ring: oklch(0.704 0.04 256.788);
-
-  --chart-1: oklch(0.646 0.222 41.116);
-
-  --chart-2: oklch(0.6 0.118 184.704);
-
-  --chart-3: oklch(0.398 0.07 227.392);
-
-  --chart-4: oklch(0.828 0.189 84.429);
-
-  --chart-5: oklch(0.769 0.188 70.08);
-
-  --success: hsl(142 76% 36%);
-
-  --success-foreground: hsl(0 0% 100%);
-
-  /* Custom tokens for ResultPins */
-  --hero-bg: linear-gradient(135deg, hsl(213 93% 50% / 0.9), hsl(213 93% 40% / 0.95));
-  --card-shadow: 0 4px 6px -1px hsl(213 93% 50% / 0.1);
-  --card-shadow-hover: 0 10px 25px -3px hsl(213 93% 50% / 0.15);
-
-  /* Typography scale */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
-
- --sidebar: hsl(0 0% 100%);
-
-  --sidebar-foreground: hsl(215 16% 20%);
-
-  --sidebar-primary: hsl(213 93% 50%);
-
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-
-  --sidebar-accent-foreground: hsl(213 93% 50%);
-
-  --sidebar-border: oklch(0.929 0.013 255.508);
-
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #FF5208;
+  --primary-500: #E64B07;
+  --primary-600: #C03F06;
+  --primary-black: #131929;
+  --primary-foreground: #000000;
+  --primary-accent: #FFC218;
+  --primary-accent-100: #FFEEE6;
+  --primary-accent-200: #FFE5D9;
+  --secondary: #FFC218;
+  --secondary-pink: #D72A52;
+  --secondary-teal: #22A699;
+  --secondary-blue: #2D9CDB;
+  --secondary-purple: #8E44AD;
+  --secondary-earth: #E4B7A0;
+  --bg-grey-50: #FAFAFA;
+  --bg-grey-100: #F5F5F5;
+  --bg-grey-200: #EAEAEA;
+  --text-grey-100: #eaeaea;
+  --text-grey-200: #9ea2ae;
+  --text-grey-light: #9B9B9B;
+  --text-grey-dark: #7E7E7E;
+  --status-green: #43B75D;
+  --status-blue: #0095FF;
+  --status-orange: #FFAA00;
+  --status-red: #EE443F;
+  --box-shadow-100: 0px 4px 4px -2px rgba(19, 25, 39, 0.08), 0px 2px 4px -2px rgba(19, 25, 39, 0.12);
+  --box-shadow-200: 0px 8px 8px -4px rgba(19, 25, 39, 0.08), 0px 4px 6px -4px rgba(19, 25, 39, 0.12);
+  --box-shadow-300: 0px 8px 16px -6px rgba(19, 25, 39, 0.08), 0px 6px 8px -6px rgba(19, 25, 39, 0.12);
+  --box-shadow-400: 0px 8px 24px -4px rgba(19, 25, 39, 0.08), 0px 6px 12px -6px rgba(19, 25, 39, 0.12);
+  --box-shadow-500: 0px 10px 32px -4px rgba(19, 25, 39, 0.1), 0px 6px 14px -6px rgba(19, 25, 39, 0.12);
+  --box-shadow-600: 0px 12px 42px -4px rgba(19, 25, 39, 0.12), 0px 8px 18px -6px rgba(19, 25, 39, 0.12);
+  --box-shadow-700: 0px 14px 64px -4px rgba(19, 25, 39, 0.12), 0px 8px 22px -6px rgba(19, 25, 39, 0.12);
+  --box-shadow-800: 0px 18px 88px -4px rgba(19, 25, 39, 0.14), 0px 8px 28px -6px rgba(19, 25, 39, 0.12);
 }
 
 .dark {
