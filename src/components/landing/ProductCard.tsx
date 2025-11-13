@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLoadingOverlay } from "./LoadingOverlay";
+import { useEffect } from "react";
 
 interface ProductCardProps {
   title: string;
@@ -17,7 +18,12 @@ interface ProductCardProps {
 
 const ProductCard = ({ title, price, description, image, inStock = true, id }: ProductCardProps) => {
   const router = useRouter();
-  const { show: showLoader } = useLoadingOverlay();
+  const { show: showLoader, hide } = useLoadingOverlay();
+
+  useEffect(() => {
+    hide();
+  }, [hide]);
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border border-border">
       <CardContent className="p-6">
@@ -45,7 +51,10 @@ const ProductCard = ({ title, price, description, image, inStock = true, id }: P
           
           <div className="flex items-center justify-between pt-2">
             <span className="text-2xl font-bold text-primary-landing">{price}</span>
-            <Button size="sm" className="bg-primary-landing hover:bg-primary-landing/80" onClick={() => { showLoader(); router.push(`/${id}`); }}>
+            <Button 
+            size="sm" 
+            className="bg-primary-landing hover:bg-primary-landing/80" 
+            onClick={() => { showLoader(); router.push(`/${id}`); }}>
               Buy Now
             </Button>
           </div>

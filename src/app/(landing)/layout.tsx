@@ -1,7 +1,5 @@
-import Navigation from "@/components/landing/Navigation";
 import "./globals.css";
 import { LoadingOverlayProvider } from "@/components/landing/LoadingOverlay";
-import Footer from "@/components/landing/Footer";
 
 export default function LandingLayout({
   children,

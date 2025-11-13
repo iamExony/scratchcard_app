@@ -94,7 +94,7 @@ const Navigation = () => {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-md  border-primary-landing cursor-pointer text-primary-landing font-semibold  hover:bg-primary-landing"
+              className="rounded-md  border-primary-landing cursor-pointer text-primary-landing font-semibold  hover:bg-primary-landing hover:text-white"
               onClick={() => {
                 showLoader();
                 router.push("/login");

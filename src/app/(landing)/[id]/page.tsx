@@ -7,6 +7,7 @@ import React, { useState, use, useEffect, useRef, Suspense } from "react";
 import { useLoadingOverlay } from "@/components/landing/LoadingOverlay";
 import { useRouter } from "next/navigation";
 import { generateReference } from "@/lib/utils";
+import NotFound from "@/app/not-found";
 
 
 interface DetailPageProp {
@@ -76,6 +77,8 @@ function DetailPageInner({ params }: DetailPageProp) {
             hide();
         }
     }, [hide]);
+
+    if(id !== cards?.id) return <NotFound />;
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">

@@ -19,8 +19,8 @@ export function LoadingOverlayProvider({ children }: { children: React.ReactNode
       {visible && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg p-8 shadow-lg flex flex-col items-center">
-            <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-            <span className="text-lg font-semibold text-primary">Loading...</span>
+            <div className="h-12 w-12 border-4 border-primary-landing border-t-transparent rounded-full animate-spin mb-4"></div>
+            <span className="text-lg font-semibold text-primary-landing">Loading...</span>
           </div>
         </div>
       )}

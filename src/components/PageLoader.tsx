@@ -28,7 +28,7 @@ export function PageLoader() {
           </div>
         </div>
         <p className="mt-6 text-lg font-semibold text-gray-700 animate-pulse">
-          Loading ResultPins...
+          Loading Scratchcard.com...
         </p>
       </div>
     </div>
